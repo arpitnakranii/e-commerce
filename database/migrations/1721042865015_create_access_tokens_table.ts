@@ -18,8 +18,8 @@ export default class extends BaseSchema {
       table.string('name').nullable()
       table.string('hash').notNullable()
       table.text('abilities').notNullable()
-      table.timestamps(true,true)
-      
+      table.timestamps(true, true)
+
       table.timestamp('last_used_at').nullable()
       table.timestamp('expires_at').nullable()
     })

@@ -15,7 +15,7 @@ const providers = [
   '@adonisjs/framework/providers/AppProvider',
   '@adonisjs/view/providers/ViewProvider',
   '@adonisjs/mail/providers/MailProvider',
-];
+]
 /**
  * The configuration settings used by the HTTP server
  */

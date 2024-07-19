@@ -10,8 +10,7 @@ export default class extends BaseSchema {
       table.string('password').notNullable()
       table.timestamp('emailVerified_at').notNullable()
 
-      table.timestamps(true,true)   
-     
+      table.timestamps(true, true)
     })
   }
 
