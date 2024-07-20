@@ -10,6 +10,7 @@ export default class extends BaseSchema {
       table.string('slug').notNullable().unique()
       table.decimal('price', 12, 2).notNullable()
       table.decimal('discount_price', 12, 2).notNullable()
+      table.integer('category').unsigned().references('categories.id')
       table.text('description').notNullable()
       table.integer('total_quantity').notNullable()
       table.string('featured_image').notNullable()

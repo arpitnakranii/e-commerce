@@ -8,9 +8,11 @@
 */
 
 const AuthController = () => import('#controllers/auth_controller')
-import auth from '@adonisjs/auth/services/main'
+
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
+const OrderitemsController = () => import('#controllers/orderitems_controller')
+const CategoriesController = () => import('#controllers/categories_controller')
 const ProductsController = () => import('#controllers/products_controller')
 
 router.get('/', async () => {
@@ -34,5 +36,15 @@ router
     router.post('get/user', [AuthController, 'getUser'])
     router.post('get/product', [ProductsController, 'getProduct'])
     router.get('get/product/:id', [ProductsController, 'getSingleProduct'])
+
+    router.post('caregory/add', [CategoriesController, 'addCategory'])
+    router.put('caregory/update/:id', [CategoriesController, 'updateCategory'])
+    router.post('get/category', [CategoriesController, 'getProduct'])
+    router.get('get/category/:id', [CategoriesController, 'getSingalProduct'])
+
+    router.post('order/create', [OrderitemsController, 'createOrder'])
+    router.post('order/increse-quantity/:id', [OrderitemsController, 'increseQuantity'])
+    router.post('order/decrese-quantity/:id', [OrderitemsController, 'decreseQuantity'])
+    router.delete('/order/delete/:id', [OrderitemsController, 'deleteOrder'])
   })
   .use(middleware.auth({ guards: ['api'] }))

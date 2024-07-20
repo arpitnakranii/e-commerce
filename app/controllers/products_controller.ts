@@ -3,6 +3,7 @@ import { cuid } from '@adonisjs/core/helpers'
 import type { HttpContext } from '@adonisjs/core/http'
 import app from '@adonisjs/core/services/app'
 import vine from '@vinejs/vine'
+import { DateTime } from 'luxon'
 
 export default class ProductsController {
   async createProduct({ request, response, auth }: HttpContext) {
@@ -22,6 +23,7 @@ export default class ProductsController {
           discount_price: vine.number().min(0),
           description: vine.string().minLength(10),
           total_quantity: vine.number().min(0),
+          category: vine.number(),
           featuredImage: vine.file({
             size: '2mb',
             extnames: ['jpg', 'png'],
@@ -43,6 +45,7 @@ export default class ProductsController {
       product.description = data.description
       product.discount_price = data.discount_price
       product.total_quantity = data.total_quantity
+      product.category = data.category
 
       if (verifyData.featuredImage) {
         const featuredFileName = `${cuid()}.${featuredImage?.extname}`
@@ -158,6 +161,7 @@ export default class ProductsController {
           }
           user.images = JSON.stringify(imgList)
         }
+        user.updatedAt = DateTime.now()
         await user.save()
 
         return response.status(200).json({
@@ -184,6 +188,7 @@ export default class ProductsController {
 
     if (verify.limit && verify.page) {
       const productData = await Product.query()
+        .preload('categories')
         .select('*')
         .orderBy('id')
         .paginate(data.page, data.limit)
@@ -203,7 +208,7 @@ export default class ProductsController {
       console.log('hrllo')
       if (user) {
         return response.status(200).json({
-          massage: 'Single Product SuccessFully',
+          massage: 'Single Product Fetch SuccessFully',
           data: user,
         })
       } else {

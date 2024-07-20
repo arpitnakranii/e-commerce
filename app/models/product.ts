@@ -1,6 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, beforeSave } from '@adonisjs/lucid/orm'
-import slugify from 'slugify'
+import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
+
+import Category from '#models/category'
+import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 export default class Product extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
@@ -18,6 +20,8 @@ export default class Product extends BaseModel {
   declare discount_price: number
 
   @column()
+  declare category: string
+  @column()
   declare description: string
 
   @column()
@@ -34,4 +38,9 @@ export default class Product extends BaseModel {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime
+
+  @belongsTo(() => Category, {
+    foreignKey: 'category',
+  })
+  declare categories: BelongsTo<typeof Category>
 }
