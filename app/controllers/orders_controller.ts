@@ -110,7 +110,6 @@ export default class OrdersController {
       const billData = await Order.query()
         .where('user', id!)
         .preload('userData')
-        .preload('ProdductData')
         .preload('orderDetails')
 
       let totalBill = 0

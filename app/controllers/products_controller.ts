@@ -204,7 +204,7 @@ export default class ProductsController {
     const productId = params.id
     console.log(productId)
     if (productId) {
-      const user = await Product.find(productId)
+      const user = await Product.query().where('id', productId).preload('categories')
       console.log('hrllo')
       if (user) {
         return response.status(200).json({
