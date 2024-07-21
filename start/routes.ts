@@ -11,6 +11,7 @@ const AuthController = () => import('#controllers/auth_controller')
 
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
+const OrdersController = () => import('#controllers/orders_controller')
 const OrderitemsController = () => import('#controllers/orderitems_controller')
 const CategoriesController = () => import('#controllers/categories_controller')
 const ProductsController = () => import('#controllers/products_controller')
@@ -45,6 +46,10 @@ router
     router.post('order/create', [OrderitemsController, 'createOrder'])
     router.post('order/increse-quantity/:id', [OrderitemsController, 'increseQuantity'])
     router.post('order/decrese-quantity/:id', [OrderitemsController, 'decreseQuantity'])
-    router.delete('/order/delete/:id', [OrderitemsController, 'deleteOrder'])
+    router.delete('order/delete/:id', [OrderitemsController, 'deleteOrder'])
+
+    router.post('checkout/order', [OrdersController, 'createCheckOut'])
+    router.post('checkout/update/status/:id', [OrdersController, 'updateStatus'])
+    router.get('checkout/gen-biill', [OrdersController, 'genBill'])
   })
   .use(middleware.auth({ guards: ['api'] }))

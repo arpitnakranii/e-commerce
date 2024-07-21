@@ -3,6 +3,7 @@ import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
 
 import Category from '#models/category'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
+import Orderitem from '#models/orderitem'
 export default class Product extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
@@ -25,7 +26,7 @@ export default class Product extends BaseModel {
   declare description: string
 
   @column()
-  declare total_quantity: string
+  declare total_quantity: number
 
   @column()
   declare featured_image: string
@@ -43,4 +44,7 @@ export default class Product extends BaseModel {
     foreignKey: 'category',
   })
   declare categories: BelongsTo<typeof Category>
+
+  @hasMany(() => Orderitem)
+  declare orderitems: HasMany<typeof Orderitem>
 }

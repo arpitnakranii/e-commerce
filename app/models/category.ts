@@ -4,6 +4,7 @@ import Product from '#models/product'
 
 import { LucidModel } from '@adonisjs/lucid/types/model'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
+import Orderitem from './orderitem.js'
 
 export default class Category extends BaseModel {
   @column({ isPrimary: true })
@@ -29,4 +30,7 @@ export default class Category extends BaseModel {
 
   @hasMany(() => Product)
   declare products: HasMany<typeof Product>
+
+  @hasMany(() => Orderitem)
+  declare orderitems: HasMany<typeof Orderitem>
 }

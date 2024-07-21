@@ -1,4 +1,5 @@
 import Orderitem from '#models/orderitem'
+import Product from '#models/product'
 import type { HttpContext } from '@adonisjs/core/http'
 import vine from '@vinejs/vine'
 
@@ -18,21 +19,28 @@ export default class OrderitemsController {
       const verify = await validate.validate(data)
       if (verify.product && verify.quantity) {
         const getData = await Orderitem.findBy('product', data.product)
+        const productData = await Product.find(data.product)
         if (getData) {
           getData.product = data.product
           console.log(typeof getData.quantity)
           getData.quantity = Number(data.quantity) + Number(getData.quantity)
+          productData!.total_quantity = Number(productData?.total_quantity) - Number(data.quantity)
           getData.user = UserId
+          if (productData!.total_quantity < 0)
+            return response.unprocessableEntity({ error: 'Out Of Stock' })
           await getData.save()
+          await productData?.save()
           return response.status(200).json({ massage: 'Order updated Succesfully', data: getData })
         } else {
           const orderData = new Orderitem()
           orderData.product = data.product
           orderData.quantity = data.quantity
-
+          productData!.total_quantity = Number(productData?.total_quantity) - Number(data.quantity)
           orderData.user = UserId
-
+          if (productData!.total_quantity < 0)
+            return response.unprocessableEntity({ error: 'Out Of Stock' })
           await orderData.save()
+          await productData?.save()
           return response.status(200).json({ massage: 'Order Placed Succesfully', data: orderData })
         }
       }
