@@ -6,6 +6,7 @@ import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 import Orderitem from './orderitem.js'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
+import Wishlist from '#models/wishlist'
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   uids: ['email'],
@@ -38,4 +39,7 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @hasMany(() => Orderitem)
   declare items: HasMany<typeof Orderitem>
+
+  @hasMany(() => Wishlist)
+  declare wishlist: HasMany<typeof Wishlist>
 }

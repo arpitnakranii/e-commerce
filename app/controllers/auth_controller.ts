@@ -56,7 +56,8 @@ export default class AuthController {
   }
 
   async register({ request, response }: HttpContext) {
-    const data = await vine
+    const data = request.all()
+    const validate = await vine
       .compile(
         vine.object({
           email: vine.string().trim().email(),
@@ -81,12 +82,14 @@ export default class AuthController {
       )
         return response.unprocessableEntity({ error: 'The email has already been taken.' })
 
-      const user = await User.create({
-        email: data.email,
-        password: data.password,
-      })
+      const user = new User()
+      user.email = data.email
+      user.password = data.password
+      await user.save()
       await mail.send(new VerifyENotification(user))
-      return { success: 'Please check your email inbox (and spam) for an access link.' }
+      return {
+        success: 'Please check your email inbox (and spam) for an access link please verify email',
+      }
     } catch (err) {
       return response.unprocessableEntity({ error: err.message })
     }

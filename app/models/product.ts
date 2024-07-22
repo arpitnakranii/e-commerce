@@ -4,6 +4,8 @@ import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
 import Category from '#models/category'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import Orderitem from '#models/orderitem'
+import Review from '#models/review'
+import Wishlist from '#models/wishlist'
 export default class Product extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
@@ -47,4 +49,10 @@ export default class Product extends BaseModel {
 
   @hasMany(() => Orderitem)
   declare orderitems: HasMany<typeof Orderitem>
+
+  @hasMany(() => Review)
+  declare review: HasMany<typeof Review>
+
+  @hasMany(() => Wishlist)
+  declare wishlist: HasMany<typeof Wishlist>
 }
