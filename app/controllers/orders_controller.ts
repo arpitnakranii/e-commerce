@@ -76,7 +76,7 @@ export default class OrdersController {
       const status = request.all()
       const valiate = vine.compile(
         vine.object({
-          status: vine.enum(['Pennding', 'Accept', 'Reject']),
+          status: vine.enum(['Pennding', 'Complated', 'Shipped']),
         })
       )
       const veerify = await valiate.validate(status)
@@ -119,7 +119,7 @@ export default class OrdersController {
       for (let element of billData) {
         totalBill += Number(element.total_price)
       }
-      return { data: billData, totalBill, dataCount: billData.length }
+      return response.status(200).json({ data: billData, totalBill, dataCount: billData.length })
     } catch (err) {}
   }
 }
