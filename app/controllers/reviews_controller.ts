@@ -27,7 +27,7 @@ export default class ReviewsController {
           .where('id', reviewData.id)
           .preload('products')
           .preload('userData')
-        return response.status(200).json({
+        return {
           massage: 'Review created Successfully',
           data: disData,
         })
@@ -48,7 +48,7 @@ export default class ReviewsController {
           .preload('products')
           .preload('userData')
 
-        return response.status(200).json({ massage: 'Review Fetch Successfully', data: reviewData })
+        return { massage: 'Review Fetch Successfully', data: reviewData })
       } else {
         return response.unprocessableEntity({ error: 'Please Pass Valid Data In URl' })
       }
@@ -93,7 +93,7 @@ export default class ReviewsController {
           }
         }
 
-        return response.status(200).json({ massage: 'Review Fetch Successfully', data: reviewData })
+        return { massage: 'Review Fetch Successfully', data: reviewData })
       } else {
         return response.unprocessableEntity({ error: 'Please Pass Valid Data In URl' })
       }
@@ -108,7 +108,7 @@ export default class ReviewsController {
       if (reviewId && productId) {
         await Review.query().where('id', reviewId).andWhere('product_id', productId).delete()
 
-        return response.status(200).json({ massage: 'Review Delete Successfully' })
+        return { massage: 'Review Delete Successfully' })
       } else {
         return response.unprocessableEntity({ error: 'Please Pass Valid Data In URl' })
       }

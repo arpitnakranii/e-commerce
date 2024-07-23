@@ -1,14 +1,4 @@
-/*
-|--------------------------------------------------------------------------
-| Routes file
-|--------------------------------------------------------------------------
-|
-| The routes file is used for defining the HTTP routes.
-|
-*/
-
 const AuthController = () => import('#controllers/auth_controller')
-
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
 const ReviewsController = () => import('#controllers/reviews_controller')
@@ -28,25 +18,30 @@ router.get('auth/password/reset/:id/:token', [AuthController, 'resetpassword']).
 router
   .group(() => {
     router.post('product/add', [ProductsController, 'createProduct'])
-    router.delete('product/delete/:id', [ProductsController, 'deleteProduct'])
-    router.put('product/update/:id', [ProductsController, 'updateProduct'])
+    router
+      .group(() => {
+        router.delete('product/delete/:id', [ProductsController, 'deleteProduct'])
+        router.put('product/update/:id', [ProductsController, 'updateProduct'])
+      })
+      .use(middleware.checkOwnerShip())
+
     router.post('get/user', [AuthController, 'getUser'])
     router.post('get/product', [ProductsController, 'getProduct'])
     router.get('get/product/:id', [ProductsController, 'getSingleProduct'])
 
-    router.post('caregory/add', [CategoriesController, 'addCategory'])
-    router.put('caregory/update/:id', [CategoriesController, 'updateCategory'])
+    router.post('category/add', [CategoriesController, 'addCategory'])
+    router.put('category/update/:id', [CategoriesController, 'updateCategory'])
     router.post('get/category', [CategoriesController, 'getProduct'])
-    router.get('get/category/:id', [CategoriesController, 'getSingalProduct'])
+    router.get('get/category/:id', [CategoriesController, 'getSignalProduct'])
 
     router.post('order/create', [OrderitemsController, 'createOrder'])
-    router.post('order/increse-quantity/:id', [OrderitemsController, 'increseQuantity'])
-    router.post('order/decrese-quantity/:id', [OrderitemsController, 'decreseQuantity'])
+    router.post('order/increase-quantity/:id', [OrderitemsController, 'increaseQuantity'])
+    router.post('order/decrease-quantity/:id', [OrderitemsController, 'decreaseQuantity'])
     router.delete('order/delete/:id', [OrderitemsController, 'deleteOrder'])
 
     router.post('checkout/order', [OrdersController, 'createCheckOut'])
     router.post('checkout/update/status/:id', [OrdersController, 'updateStatus'])
-    router.get('checkout/gen-biill', [OrdersController, 'genBill'])
+    router.get('checkout/gen-bill', [OrdersController, 'genBill'])
 
     router.post('product/review/:product_id', [ReviewsController, 'createReview'])
     router.get('product/review/get/:review_id', [ReviewsController, 'getSingleReview'])

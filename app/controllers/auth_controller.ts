@@ -47,7 +47,6 @@ export default class AuthController {
   }
 
   async user({ auth }: HttpContext) {
-    // Check if the user is authenticated
     if (auth.user) {
       return { user: auth.user }
     } else {
@@ -74,6 +73,9 @@ export default class AuthController {
         }),
       })
     try {
+      if (!validate) {
+        return
+      }
       if (
         await User.query()
           // eslint-disable-next-line unicorn/no-await-expression-member
@@ -97,12 +99,14 @@ export default class AuthController {
 
   async verifyEmail({ params, request, response }: HttpContext) {
     console.log('verifyEmail' + request.hasValidSignature())
+
     if (!request.hasValidSignature()) {
       return response.unprocessableEntity({ error: 'invalid verification link' })
     }
 
     const email = decodeURIComponent(params.email)
     const user = await User.query().where('id', params.id).where('email', email).first()
+
     if (!user) {
       return response.unprocessableEntity({ error: 'invalid verification link' })
     }
@@ -147,10 +151,11 @@ export default class AuthController {
       return response.unprocessableEntity({ error: 'invalid verification link' })
     }
     const user = await User.findBy('id', params.id)
+
     if (!user) {
       return response.unprocessableEntity({ error: 'invalid verification link' })
     }
-    console.log('hello world')
+
     if (encodeURIComponent(user.password) !== params.token) {
       return response.unprocessableEntity({ error: 'Invalid reset password link.' })
     }
@@ -174,7 +179,7 @@ export default class AuthController {
     return { success: 'Password reset successfully.' }
   }
 
-  async getUser({ request, response }: HttpContext) {
+  async getUser({ request }: HttpContext) {
     const data = request.only(['page', 'limit'])
 
     const validate = vine.compile(
@@ -188,10 +193,10 @@ export default class AuthController {
 
     if (verify.limit && verify.page) {
       const userData = await User.query().select('*').orderBy('id').paginate(data.page, data.limit)
-      return response.status(200).json({
-        massage: 'User Data Fetch Succesfully',
+      return {
+        massage: 'User Data Fetch Successfully',
         data: userData,
-      })
+      }
     }
   }
 }

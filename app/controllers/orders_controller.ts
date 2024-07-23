@@ -23,12 +23,15 @@ export default class OrdersController {
       )
 
       const verify = await validate.validate(data)
+
       if (verify) {
         const findOrder = await Orderitem.query().where('user', userId!).preload('products')
-        console.log(findOrder.length)
+
         const details = []
+
         for (const element of findOrder) {
           const checkData = await Order.findBy('order_item', element.id)
+
           if (checkData) {
             ;(checkData.shipping_address1 = data.shipping_address1),
               (checkData.shipping_address2 = data.shipping_address2),
@@ -53,7 +56,7 @@ export default class OrdersController {
               (order.zip = data.zip),
               (order.country = data.country),
               (order.phone = data.phone),
-              (order.status = 'Pendding'),
+              (order.status = 'Pending'),
               console.log(order.status),
               (order.total_price =
                 Number(element.quantity) * Number(element.products.price) -
@@ -74,24 +77,23 @@ export default class OrdersController {
     try {
       const id = params.id
       const status = request.all()
-      const valiate = vine.compile(
+      const validate = vine.compile(
         vine.object({
-          status: vine.enum(['Pennding', 'Complated', 'Shipped']),
+          status: vine.enum(['Pending', 'Completed', 'Shipped']),
         })
       )
-      const veerify = await valiate.validate(status)
-      console.log('helllo    ', veerify)
+      const verify = await validate.validate(status)
 
-      if (veerify) {
+      if (verify) {
         if (id) {
           const getUser = await Order.findBy('order_item', id)
           if (getUser) {
             getUser.status = status.status
             await getUser.save()
-            return response.status(200).json({
+            return {
               massage: 'Status Updated Successfully',
               data: getUser,
-            })
+            }
           } else {
             response.unprocessableEntity({ error: 'Pass Valid Id In URL' })
           }
@@ -104,22 +106,23 @@ export default class OrdersController {
     }
   }
 
-  async genBill({ response, auth }: HttpContext) {
+  async genBill({ auth }: HttpContext) {
     try {
       const id = auth.user?.id
       const billData = await Order.query()
         .where('user', id!)
         .preload('userData')
         .preload('orderDetails', (orderDetailsQuery) => {
-          orderDetailsQuery.preload('products')
+          orderDetailsQuery.preload('products', (categoryQuery) => {
+            categoryQuery.preload('catagorieData')
+          })
         })
 
       let totalBill = 0
-      let dataCount = 0
       for (let element of billData) {
         totalBill += Number(element.total_price)
       }
-      return response.status(200).json({ data: billData, totalBill, dataCount: billData.length })
+      return { data: billData, totalBill, dataCount: billData.length }
     } catch (err) {}
   }
 }

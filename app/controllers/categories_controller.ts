@@ -9,12 +9,12 @@ export default class CategoriesController {
   async addCategory({ request, response }: HttpContext) {
     try {
       const data = request.all()
-      const valiate = vine.compile(
+      const validate = vine.compile(
         vine.object({
           name: vine.string().minLength(1),
           color: vine.string().minLength(7).maxLength(7),
           img: vine.file({
-            size: '2mb',
+            size: '1mb',
             extnames: ['jpg', 'png'],
           }),
         })
@@ -22,9 +22,9 @@ export default class CategoriesController {
       data.icon = 'icon-' + data.name.toLowerCase()
       const img = request.file('image')
       data.img = img
-      const varify = await valiate.validate(data)
+      const verify = await validate.validate(data)
       const filename = `${cuid()}.${img?.extname}`
-      if (varify.img) {
+      if (verify.img) {
         await img?.move(app.makePath('uploads/category images'), { name: filename })
       }
       const category = new Category()
@@ -33,7 +33,7 @@ export default class CategoriesController {
       category.image = data.img.fileName
       category.color = data.color
       await category.save()
-      return response.status(200).json({ massage: 'Category add successfully', data: data })
+      return { massage: 'Category add successfully', data: data }
     } catch (err) {
       return response.unprocessableEntity({ error: err })
     }
@@ -42,16 +42,18 @@ export default class CategoriesController {
   async updateCategory({ params, response, request }: HttpContext) {
     try {
       const id = params.id
+
       if (id) {
         const getuser = await Category.find(id)
+
         if (getuser) {
           const data = request.all()
-          const valiate = vine.compile(
+          const validate = vine.compile(
             vine.object({
               name: vine.string().minLength(1),
               color: vine.string().minLength(7).maxLength(7),
               img: vine.file({
-                size: '2mb',
+                size: '1mb',
                 extnames: ['jpg', 'png'],
               }),
             })
@@ -59,9 +61,10 @@ export default class CategoriesController {
           data.icon = 'icon-' + data.name.toLowerCase()
           const img = request.file('image')
           data.img = img
-          const varify = await valiate.validate(data)
+          const verify = await validate.validate(data)
           const filename = `${cuid()}.${img?.extname}`
-          if (varify.img) {
+
+          if (verify.img) {
             await img?.move(app.makePath('uploads/category images'), { name: filename })
           }
           getuser.name = data.name
@@ -86,11 +89,13 @@ export default class CategoriesController {
   async deleteProduct({ params, response }: HttpContext) {
     try {
       const id = params.id
+
       if (id) {
         const getUser = await Category.find(id)
+
         if (getUser) {
           await getUser?.delete()
-          return response.status(200).json({ massage: 'Category Deleted successfully' })
+          return { massage: 'Category Deleted successfully' }
         } else {
           return response.unprocessableEntity({ error: 'plz Pass Valid id In URL' })
         }
@@ -114,6 +119,7 @@ export default class CategoriesController {
         })
       )
       const verify = await validate.validate(data)
+
       if (verify.page && verify.limit) {
         const categoryData = await Category.query().select('*').paginate(page, limit)
         return response
@@ -125,16 +131,17 @@ export default class CategoriesController {
     }
   }
 
-  async getSingalProduct({ params, response }: HttpContext) {
+  async getSignalProduct({ params, response }: HttpContext) {
     try {
       const id = params.id
-      console.log(id)
+
       if (id) {
         const getUser = await Category.find(id)
+
         if (getUser) {
           return response
             .status(200)
-            .json({ massage: 'Singal Category Fetch successfully', data: getUser })
+            .json({ massage: 'Signal Category Fetch successfully', data: getUser })
         } else {
           return response.unprocessableEntity({ error: 'plz Pass Valid id In URL' })
         }

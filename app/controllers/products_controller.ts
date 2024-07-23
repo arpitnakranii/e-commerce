@@ -8,29 +8,27 @@ import { DateTime } from 'luxon'
 export default class ProductsController {
   async createProduct({ request, response, auth }: HttpContext) {
     try {
-      const userData = auth.user?.$attributes
       const data = request.all()
       const featuredImage = request.file('featured_image')
       const imgs = request.files('images')
       data.featuredImage = featuredImage
       data.imgs = imgs
 
-      console.log(data)
       const validationData = await vine.compile(
         vine.object({
           name: vine.string().minLength(3),
           price: vine.number().min(0),
-          discount_price: vine.number().min(0),
+          discount_price: vine.number().range([0, data.price]),
           description: vine.string().minLength(10),
           total_quantity: vine.number().min(0),
-          category: vine.number(),
+          category: vine.any(),
           featuredImage: vine.file({
-            size: '2mb',
+            size: '1mb',
             extnames: ['jpg', 'png'],
           }),
           imgs: vine.array(
             vine.file({
-              size: '2mb',
+              size: '1mb',
               extnames: ['jpg', 'png'],
             })
           ),
@@ -38,6 +36,8 @@ export default class ProductsController {
       )
 
       const verifyData = await validationData.validate(data)
+
+      console.log(data.category)
       const product = new Product()
       product.name = data.name
       product.slug = data.name.replaceAll(' ', '-').toLowerCase()
@@ -45,7 +45,21 @@ export default class ProductsController {
       product.description = data.description
       product.discount_price = data.discount_price
       product.total_quantity = data.total_quantity
-      product.category = data.category
+      product.user_id = await auth.user?.id!
+
+      if (!product.user_id) {
+        return { error: 'User Not Found' }
+      }
+
+      let categoryIds: number[] = []
+
+      if (Array.isArray(verifyData.category)) {
+        categoryIds = verifyData.category
+      } else if (typeof verifyData.category === 'number') {
+        categoryIds = [verifyData.category]
+      } else {
+        return response.badRequest('Category must be a number or an array of numbers.')
+      }
 
       if (verifyData.featuredImage) {
         const featuredFileName = `${cuid()}.${featuredImage?.extname}`
@@ -71,11 +85,12 @@ export default class ProductsController {
         product.images = JSON.stringify(imgList)
       }
       await product.save()
-
-      return response.status(200).json({
+      await product.related('catagorieData').attach(categoryIds)
+      await product.load('catagorieData')
+      return {
         massage: 'Product Add Successfully',
         data: product,
-      })
+      }
     } catch (err) {
       return response.unprocessableEntity(err)
     }
@@ -86,12 +101,12 @@ export default class ProductsController {
     console.log(productId)
     if (productId) {
       const user = await Product.find(productId)
-      console.log('hrllo')
+
       if (user) {
         await user.delete()
-        return response.status(200).json({
+        return {
           massage: 'Product Delete SuccessFully',
-        })
+        }
       } else {
         return response.unprocessableEntity({ error: 'Enter valid Id in url' })
       }
@@ -120,12 +135,12 @@ export default class ProductsController {
             description: vine.string().minLength(10),
             total_quantity: vine.number().min(0),
             featuredImage: vine.file({
-              size: '2mb',
+              size: '1mb',
               extnames: ['jpg', 'png'],
             }),
             imgs: vine.array(
               vine.file({
-                size: '2mb',
+                size: '1mb',
                 extnames: ['jpg', 'png'],
               })
             ),
@@ -164,17 +179,17 @@ export default class ProductsController {
         user.updatedAt = DateTime.now()
         await user.save()
 
-        return response.status(200).json({
+        return {
           massage: 'Product Updated Successfully',
           data: user,
-        })
+        }
       } else {
         return response.unprocessableEntity({ error: 'pass valid Id in url' })
       }
     }
   }
 
-  async getProduct({ request, response }: HttpContext) {
+  async getProduct({ request }: HttpContext) {
     const data = request.only(['page', 'limit'])
 
     const validate = vine.compile(
@@ -188,31 +203,30 @@ export default class ProductsController {
 
     if (verify.limit && verify.page) {
       const productData = await Product.query()
-        .preload('categories')
+        .preload('catagorieData')
         .select('*')
         .orderBy('id')
         .paginate(data.page, data.limit)
 
-      return response.status(200).json({
-        massage: 'Product Data Fetch Succesfully',
+      return {
+        massage: 'Product Data Fetch Successfully',
         data: productData,
-      })
+      }
     }
   }
 
   async getSingleProduct({ params, response }: HttpContext) {
     const productId = params.id
     console.log(productId)
-    if (productId) {
-      const user = await Product.query().where('id', productId).preload('categories')
-      console.log('hrllo')
-      if (user) {
-        return response.status(200).json({
-          massage: 'Single Product Fetch SuccessFully',
-          data: user,
-        })
-      } else {
-        return response.unprocessableEntity({ error: 'Enter valid Id in url' })
+    if (!productId) {
+      return response.unprocessableEntity({ error: 'Enter valid Id in url' })
+    }
+    const user = await Product.query().where('id', productId).preload('catagorieData')
+
+    if (user) {
+      return {
+        massage: 'Single Product Fetch SuccessFully',
+        data: user,
       }
     }
   }

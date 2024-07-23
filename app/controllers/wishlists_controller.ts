@@ -24,9 +24,9 @@ export default class WishlistsController {
         wishlist.product_id = data.product_id
         await wishlist.save()
 
-        return response.status(200).json({
+        return {
           massage: 'Product Add in Wishlist Successfully',
-        })
+        }
       }
     } catch (err) {
       return response.unprocessableEntity({ error: err })
@@ -58,7 +58,7 @@ export default class WishlistsController {
       const data = await Wishlist.query().where('id', params.id).first()
       if (data) {
         await data.delete()
-        return response.status(200).json({ massage: 'Wishlist Delete Successfully' })
+        return { massage: 'Wishlist Delete Successfully' }
       } else {
         return response.unprocessableEntity({ error: 'Data Not Found Please Pass Valid Id' })
       }

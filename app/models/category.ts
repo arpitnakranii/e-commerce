@@ -1,9 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, hasMany, hasOne } from '@adonisjs/lucid/orm'
+import { BaseModel, column, hasMany, manyToMany } from '@adonisjs/lucid/orm'
 import Product from '#models/product'
 
-import { LucidModel } from '@adonisjs/lucid/types/model'
-import type { HasMany } from '@adonisjs/lucid/types/relations'
+import type { HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Orderitem from './orderitem.js'
 
 export default class Category extends BaseModel {
@@ -33,4 +32,9 @@ export default class Category extends BaseModel {
 
   @hasMany(() => Orderitem)
   declare orderitems: HasMany<typeof Orderitem>
+
+  @manyToMany(() => Product, {
+    pivotTable: 'product_categories',
+  })
+  declare productData: ManyToMany<typeof Product>
 }

@@ -1,8 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, belongsTo, hasMany } from '@adonisjs/lucid/orm'
+import { BaseModel, column, belongsTo, hasMany, manyToMany } from '@adonisjs/lucid/orm'
 
 import Category from '#models/category'
-import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Orderitem from '#models/orderitem'
 import Review from '#models/review'
 import Wishlist from '#models/wishlist'
@@ -36,6 +36,9 @@ export default class Product extends BaseModel {
   @column()
   declare images: string
 
+  @column()
+  declare user_id: number
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
@@ -55,4 +58,9 @@ export default class Product extends BaseModel {
 
   @hasMany(() => Wishlist)
   declare wishlist: HasMany<typeof Wishlist>
+
+  @manyToMany(() => Category, {
+    pivotTable: 'product_categories',
+  })
+  declare catagorieData: ManyToMany<typeof Category>
 }

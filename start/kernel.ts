@@ -43,4 +43,5 @@ router.use([
  */
 export const middleware = router.named({
   auth: () => import('#middleware/auth_middleware'),
+  checkOwnerShip: () => import('#middleware/check_product_ownership_middleware'),
 })

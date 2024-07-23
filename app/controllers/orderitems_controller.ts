@@ -20,6 +20,7 @@ export default class OrderitemsController {
       if (verify.product && verify.quantity) {
         const getData = await Orderitem.findBy('product', data.product)
         const productData = await Product.find(data.product)
+        console.log(productData)
         if (getData) {
           getData.product = data.product
           console.log(typeof getData.quantity)
@@ -30,7 +31,7 @@ export default class OrderitemsController {
             return response.unprocessableEntity({ error: 'Out Of Stock' })
           await getData.save()
           await productData?.save()
-          return response.status(200).json({ massage: 'Order updated Succesfully', data: getData })
+          return { massage: 'Order updated Successfully', data: getData }
         } else {
           const orderData = new Orderitem()
           orderData.product = data.product
@@ -41,14 +42,16 @@ export default class OrderitemsController {
             return response.unprocessableEntity({ error: 'Out Of Stock' })
           await orderData.save()
           await productData?.save()
-          return response.status(200).json({ massage: 'Order Placed Succesfully', data: orderData })
+          return response
+            .status(200)
+            .json({ massage: 'Order Placed Successfully', data: orderData })
         }
       }
     } catch (err) {
       return response.unprocessableEntity({ error: err })
     }
   }
-  async increseQuantity({ params, response, request }: HttpContext) {
+  async increaseQuantity({ params, response, request }: HttpContext) {
     const id = params.id
     const Add = request.only(['quantity'])
     const validate = vine.compile(
@@ -69,11 +72,11 @@ export default class OrderitemsController {
         return response.unprocessableEntity({ massage: 'Order Not Found' })
       }
     } else {
-      return response.unprocessableEntity({ error: 'Unknow URL' })
+      return response.unprocessableEntity({ error: 'Unknown URL' })
     }
   }
 
-  async decreseQuantity({ params, response, request }: HttpContext) {
+  async decreaseQuantity({ params, response, request }: HttpContext) {
     const id = params.id
     const Add = request.only(['quantity'])
     const validate = vine.compile(
@@ -91,12 +94,12 @@ export default class OrderitemsController {
           getUser.quantity = temp
         }
         await getUser.save()
-        return response.status(200).json({ massage: 'Minus Quantity SuccessFully', data: getUser })
+        return { massage: 'Minus Quantity SuccessFully', data: getUser }
       } else {
         return response.unprocessableEntity({ massage: 'Order Not Found' })
       }
     } else {
-      return response.unprocessableEntity({ error: 'Unknow URL' })
+      return response.unprocessableEntity({ error: 'Unknown URL' })
     }
   }
 
@@ -107,12 +110,12 @@ export default class OrderitemsController {
       const getUser = await Orderitem.find(id)
       if (getUser) {
         await getUser.delete()
-        return response.status(200).json({ massage: 'Order Delete SuccessFully', data: getUser })
+        return { massage: 'Order Delete SuccessFully', data: getUser }
       } else {
         return response.unprocessableEntity({ massage: 'Plz Enter valid Id In URL' })
       }
     } else {
-      return response.unprocessableEntity({ error: 'Unknow URL' })
+      return response.unprocessableEntity({ error: 'Unknot URL' })
     }
   }
 }
