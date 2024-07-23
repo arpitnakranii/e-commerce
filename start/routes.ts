@@ -26,6 +26,25 @@ router
       })
       .use(middleware.checkOwnerShip())
 
+    router
+      .group(() => {
+        router.delete('product/wishlist/:id', [WishlistsController, 'deleteWishlist'])
+      })
+      .use(middleware.checkwishListOwnership())
+
+    router
+      .group(() => {
+        router.put('product/review/update/:review_id?/:product_id?', [
+          ReviewsController,
+          'updateReview',
+        ])
+        router.delete('product/review/delete/:review_id?/:product_id?', [
+          ReviewsController,
+          'deleteReview',
+        ])
+      })
+      .use(middleware.checkReviewOwnership())
+
     router.post('get/user', [AuthController, 'getUser'])
 
     router.get('get/product/:page?/:limit?', [ProductsController, 'getProduct'])
@@ -48,18 +67,7 @@ router
     router.post('product/review/:product_id?', [ReviewsController, 'createReview'])
     router.get('product/review/get/:review_id?', [ReviewsController, 'getSingleReview'])
 
-    router.put('product/review/update/:review_id?/:product_id?', [
-      ReviewsController,
-      'updateReview',
-    ])
-
-    router.delete('product/review/delete/:review_id?/:product_id?', [
-      ReviewsController,
-      'deleteReview',
-    ])
-
     router.post('product/wishlist', [WishlistsController, 'addWishList'])
     router.get('product/wishlist/get', [WishlistsController, 'getAllwishList'])
-    router.delete('product/wishlist/:id', [WishlistsController, 'deleteWishlist'])
   })
   .use(middleware.auth({ guards: ['api'] }))

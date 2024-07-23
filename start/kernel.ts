@@ -42,6 +42,8 @@ router.use([
  * the routes or the routes group.
  */
 export const middleware = router.named({
+  checkReviewOwnership: () => import('#middleware/check_review_ownership_middleware'),
+  checkwishListOwnership: () => import('#middleware/checkwish_list_ownership_middleware'),
   auth: () => import('#middleware/auth_middleware'),
   checkOwnerShip: () => import('#middleware/check_product_ownership_middleware'),
 })
