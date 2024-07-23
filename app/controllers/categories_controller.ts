@@ -9,6 +9,7 @@ export default class CategoriesController {
   async addCategory({ request, response }: HttpContext) {
     try {
       const data = request.all()
+
       const validate = vine.compile(
         vine.object({
           name: vine.string().minLength(1),
@@ -19,14 +20,17 @@ export default class CategoriesController {
           }),
         })
       )
+
       data.icon = 'icon-' + data.name.toLowerCase()
       const img = request.file('image')
       data.img = img
       const verify = await validate.validate(data)
       const filename = `${cuid()}.${img?.extname}`
+
       if (verify.img) {
         await img?.move(app.makePath('uploads/category images'), { name: filename })
       }
+
       const category = new Category()
       category.name = data.name
       category.icon = data.icon
@@ -43,43 +47,45 @@ export default class CategoriesController {
     try {
       const id = params.id
 
-      if (id) {
-        const getuser = await Category.find(id)
+      if (!id) {
+        return response.unprocessableEntity({ error: 'Pass Valid Id is In URL' })
+      }
 
-        if (getuser) {
-          const data = request.all()
-          const validate = vine.compile(
-            vine.object({
-              name: vine.string().minLength(1),
-              color: vine.string().minLength(7).maxLength(7),
-              img: vine.file({
-                size: '1mb',
-                extnames: ['jpg', 'png'],
-              }),
-            })
-          )
-          data.icon = 'icon-' + data.name.toLowerCase()
-          const img = request.file('image')
-          data.img = img
-          const verify = await validate.validate(data)
-          const filename = `${cuid()}.${img?.extname}`
+      const getuser = await Category.find(id)
 
-          if (verify.img) {
-            await img?.move(app.makePath('uploads/category images'), { name: filename })
-          }
-          getuser.name = data.name
-          getuser.icon = data.icon
-          getuser.image = data.img.fileName
-          getuser.color = data.color
-          getuser.updatedAt = DateTime.now()
+      if (getuser) {
+        const data = request.all()
+        const validate = vine.compile(
+          vine.object({
+            name: vine.string().minLength(1),
+            color: vine.string().minLength(7).maxLength(7),
+            img: vine.file({
+              size: '1mb',
+              extnames: ['jpg', 'png'],
+            }),
+          })
+        )
 
-          await getuser.save()
-          return response
-            .status(200)
-            .json({ massage: 'Category Updated successfully', data: getuser })
-        } else {
-          return response.unprocessableEntity({ error: 'Pass Valid is In URL' })
+        data.icon = 'icon-' + data.name.toLowerCase()
+        const img = request.file('image')
+        data.img = img
+        const verify = await validate.validate(data)
+        const filename = `${cuid()}.${img?.extname}`
+
+        if (verify.img) {
+          await img?.move(app.makePath('uploads/category images'), { name: filename })
         }
+
+        getuser.name = data.name
+        getuser.icon = data.icon
+        getuser.image = data.img.fileName
+        getuser.color = data.color
+        getuser.updatedAt = DateTime.now()
+
+        await getuser.save()
+        return response
+          .status(200)
+          .json({ massage: 'Category Updated successfully', data: getuser })
       }
     } catch (err) {
       return response.unprocessableEntity({ error: err })
@@ -107,25 +113,19 @@ export default class CategoriesController {
     }
   }
 
-  async getProduct({ response, request }: HttpContext) {
+  async getProduct({ response, params }: HttpContext) {
     try {
-      const data = request.only(['page', 'limit'])
-      const page = data.page
-      const limit = data.limit
-      const validate = vine.compile(
-        vine.object({
-          page: vine.number().min(1),
-          limit: vine.number().min(1),
-        })
-      )
-      const verify = await validate.validate(data)
+      const page = params.page
+      const limit = params.limit
 
-      if (verify.page && verify.limit) {
-        const categoryData = await Category.query().select('*').paginate(page, limit)
-        return response
-          .status(200)
-          .json({ massage: 'Category Fetch successfully', data: categoryData })
+      if (!page || !limit) {
+        return 'Pass Valid Params in URL'
       }
+
+      const categoryData = await Category.query().select('*').paginate(page, limit)
+      return response
+        .status(200)
+        .json({ massage: 'Category Fetch successfully', data: categoryData })
     } catch (err) {
       return response.unprocessableEntity({ error: err })
     }

@@ -37,7 +37,6 @@ export default class ProductsController {
 
       const verifyData = await validationData.validate(data)
 
-      console.log(data.category)
       const product = new Product()
       product.name = data.name
       product.slug = data.name.replaceAll(' ', '-').toLowerCase()
@@ -71,11 +70,13 @@ export default class ProductsController {
 
       if (verifyData.imgs) {
         const imgList = []
+
         for (const img of verifyData.imgs) {
           const fileName = `${cuid()}.${featuredImage?.extname}`
           await img.move(app.makePath('uploads/Images'), {
             name: fileName,
           })
+
           if (img?.filePath) {
             imgList.push(fileName)
           } else {
@@ -84,6 +85,7 @@ export default class ProductsController {
         }
         product.images = JSON.stringify(imgList)
       }
+
       await product.save()
       await product.related('catagorieData').attach(categoryIds)
       await product.load('catagorieData')
@@ -98,120 +100,125 @@ export default class ProductsController {
 
   async deleteProduct({ params, response }: HttpContext) {
     const productId = params.id
-    console.log(productId)
-    if (productId) {
-      const user = await Product.find(productId)
 
-      if (user) {
-        await user.delete()
-        return {
-          massage: 'Product Delete SuccessFully',
-        }
-      } else {
-        return response.unprocessableEntity({ error: 'Enter valid Id in url' })
+    if (!productId) {
+      return { error: 'pass Id In URL' }
+    }
+
+    const user = await Product.find(productId)
+
+    if (user) {
+      await user.delete()
+      return {
+        massage: 'Product Delete SuccessFully',
       }
+    } else {
+      return response.unprocessableEntity({ error: 'Enter valid Id in url' })
     }
   }
 
   async updateProduct({ params, request, response }: HttpContext) {
     const productId = params.id
-    console.log(productId)
-    if (productId) {
-      const user = await Product.find(productId)
-      console.log(user)
-      if (user) {
-        const data = request.all()
-        const featuredImage = request.file('featured_image')
-        const imgs = request.files('images')
-        data.featuredImage = featuredImage
-        data.imgs = imgs
 
-        console.log(data)
-        const validationData = await vine.compile(
-          vine.object({
-            name: vine.string(),
-            price: vine.number().min(0),
-            discount_price: vine.number().min(0),
-            description: vine.string().minLength(10),
-            total_quantity: vine.number().min(0),
-            featuredImage: vine.file({
+    if (productId) {
+      return response.unprocessableEntity({ error: 'pass valid Id in url' })
+    }
+    const user = await Product.find(productId)
+
+    if (user) {
+      const data = request.all()
+      const featuredImage = request.file('featured_image')
+      const imgs = request.files('images')
+      data.featuredImage = featuredImage
+      data.imgs = imgs
+
+      const validationData = vine.compile(
+        vine.object({
+          name: vine.string(),
+          price: vine.number().min(0),
+          discount_price: vine.number().min(0),
+          description: vine.string().minLength(10),
+          total_quantity: vine.number().min(0),
+          featuredImage: vine.file({
+            size: '1mb',
+            extnames: ['jpg', 'png'],
+          }),
+          imgs: vine.array(
+            vine.file({
               size: '1mb',
               extnames: ['jpg', 'png'],
-            }),
-            imgs: vine.array(
-              vine.file({
-                size: '1mb',
-                extnames: ['jpg', 'png'],
-              })
-            ),
-          })
-        )
-        const verifyData = await validationData.validate(data)
-        user.name = data.name
-        user.slug = data.name.replaceAll(' ', '-').toLowerCase()
-        user.price = data.price
-        user.description = data.description
-        user.discount_price = data.discount_price
-        user.total_quantity = data.total_quantity
-        if (verifyData.featuredImage) {
-          const featuredFileName = `${cuid()}.${featuredImage?.extname}`
-          await featuredImage?.move(app.makePath('uploads/featuredImage'), {
-            name: featuredFileName,
-          })
-          user.featured_image = featuredFileName
-        }
-
-        if (verifyData.imgs) {
-          const imgList = []
-          for (const img of verifyData.imgs) {
-            const fileName = `${cuid()}.${featuredImage?.extname}`
-            await img.move(app.makePath('uploads/Images'), {
-              name: fileName,
             })
-            if (img?.filePath) {
-              imgList.push(fileName)
-            } else {
-              return response.badRequest('Error Moving Files')
-            }
-          }
-          user.images = JSON.stringify(imgList)
-        }
-        user.updatedAt = DateTime.now()
-        await user.save()
+          ),
+        })
+      )
 
-        return {
-          massage: 'Product Updated Successfully',
-          data: user,
+      const verifyData = await validationData.validate(data)
+
+      user.name = data.name
+      user.slug = data.name.replaceAll(' ', '-').toLowerCase()
+      user.price = data.price
+      user.description = data.description
+      user.discount_price = data.discount_price
+      user.total_quantity = data.total_quantity
+
+      if (verifyData.featuredImage) {
+        const featuredFileName = `${cuid()}.${featuredImage?.extname}`
+        await featuredImage?.move(app.makePath('uploads/featuredImage'), {
+          name: featuredFileName,
+        })
+        user.featured_image = featuredFileName
+      }
+
+      if (verifyData.imgs) {
+        const imgList = []
+
+        for (const img of verifyData.imgs) {
+          const fileName = `${cuid()}.${featuredImage?.extname}`
+          await img.move(app.makePath('uploads/Images'), {
+            name: fileName,
+          })
+
+          if (img?.filePath) {
+            imgList.push(fileName)
+          } else {
+            return response.badRequest('Error Moving Files')
+          }
         }
-      } else {
-        return response.unprocessableEntity({ error: 'pass valid Id in url' })
+        user.images = JSON.stringify(imgList)
+      }
+
+      user.updatedAt = DateTime.now()
+      await user.save()
+
+      return {
+        massage: 'Product Updated Successfully',
+        data: user,
       }
     }
   }
 
-  async getProduct({ request }: HttpContext) {
-    const data = request.only(['page', 'limit'])
+  async getProduct({ response, params }: HttpContext) {
+    try {
+      const page = Number(params.page)
+      const limit = params.limit
 
-    const validate = vine.compile(
-      vine.object({
-        page: vine.number().min(1),
-        limit: vine.number().min(1),
-      })
-    )
+      if (!page || !limit) {
+        return 'Pass Valid Params in URL'
+      }
 
-    const verify = await validate.validate(data)
-
-    if (verify.limit && verify.page) {
       const productData = await Product.query()
         .preload('catagorieData')
+        .preload('userData')
         .select('*')
         .orderBy('id')
-        .paginate(data.page, data.limit)
+        .paginate(page, limit)
 
       return {
         massage: 'Product Data Fetch Successfully',
         data: productData,
       }
+    } catch (err) {
+      return response.unprocessableEntity({ error: err })
     }
   }
 
@@ -221,7 +228,11 @@ export default class ProductsController {
     if (!productId) {
       return response.unprocessableEntity({ error: 'Enter valid Id in url' })
     }
-    const user = await Product.query().where('id', productId).preload('catagorieData')
+
+    const user = await Product.query()
+      .where('id', productId)
+      .preload('catagorieData')
+      .preload('userData')
 
     if (user) {
       return {
