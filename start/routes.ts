@@ -46,7 +46,6 @@ router
       .use(middleware.checkReviewOwnership())
 
     router.post('get/user', [AuthController, 'getUser'])
-
     router.get('get/product/:page?/:limit?', [ProductsController, 'getProduct'])
     router.get('get/single-product/:id?', [ProductsController, 'getSingleProduct'])
 
