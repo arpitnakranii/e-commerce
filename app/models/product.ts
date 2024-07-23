@@ -6,6 +6,7 @@ import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relat
 import Orderitem from '#models/orderitem'
 import Review from '#models/review'
 import Wishlist from '#models/wishlist'
+import User from './user.js'
 export default class Product extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
@@ -49,6 +50,11 @@ export default class Product extends BaseModel {
     foreignKey: 'category',
   })
   declare categories: BelongsTo<typeof Category>
+
+  @belongsTo(() => User, {
+    foreignKey: 'user_id',
+  })
+  declare userData: BelongsTo<typeof User>
 
   @hasMany(() => Orderitem)
   declare orderitems: HasMany<typeof Orderitem>

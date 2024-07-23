@@ -34,7 +34,6 @@ export default class AuthController {
         expiresIn: '1 year',
         name: name[0],
       })
-      console.log(tocken)
 
       if (!tocken.value?.release()) {
         return response.unprocessableEntity({ error: 'invalid email or password' })
@@ -56,6 +55,7 @@ export default class AuthController {
 
   async register({ request, response }: HttpContext) {
     const data = request.all()
+
     const validate = await vine
       .compile(
         vine.object({
@@ -76,6 +76,7 @@ export default class AuthController {
       if (!validate) {
         return
       }
+
       if (
         await User.query()
           // eslint-disable-next-line unicorn/no-await-expression-member
@@ -98,8 +99,6 @@ export default class AuthController {
   }
 
   async verifyEmail({ params, request, response }: HttpContext) {
-    console.log('verifyEmail' + request.hasValidSignature())
-
     if (!request.hasValidSignature()) {
       return response.unprocessableEntity({ error: 'invalid verification link' })
     }
@@ -139,8 +138,6 @@ export default class AuthController {
         error: "We can't find a user with that e-mail address",
       })
     }
-
-    console.log(user)
 
     await mail.send(new ResetPasswordNotification(user))
 

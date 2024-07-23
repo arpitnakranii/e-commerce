@@ -17,9 +17,6 @@ export default class ResetPasswordNotification extends BaseMail {
       .makeSigned('resetpassword', {
         expiresIn: '30 minutes',
       })
-    const url = `${env.get('PASSWORD_RESET_PAGE_URL')}?token=${encodeURIComponent(signedURL)}`
-    console.log(signedURL)
-    //this.message.to(this.user.email).htmlView('emails/reset_password', { url })
     this.message.to(this.user.email).htmlView('emails/reset_password', { signedURL })
   }
 }

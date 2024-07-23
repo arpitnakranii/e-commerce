@@ -9,7 +9,6 @@ export default class OrdersController {
     try {
       const user = auth.user
       const userId = user?.id
-      console.log(userId)
       const data = request.all()
       const validate = vine.compile(
         vine.object({
@@ -45,7 +44,6 @@ export default class OrdersController {
               (checkData.user = element.user)
             await checkData.save()
             const O = await Order.query().where('user', element.user!).preload('userData').first()
-            console.log(O)
             details.push(O)
           } else {
             let order = new Order()
@@ -57,7 +55,6 @@ export default class OrdersController {
               (order.country = data.country),
               (order.phone = data.phone),
               (order.status = 'Pending'),
-              console.log(order.status),
               (order.total_price =
                 Number(element.quantity) * Number(element.products.price) -
                 Number(element.products.discount_price)),
@@ -77,6 +74,10 @@ export default class OrdersController {
     try {
       const id = params.id
       const status = request.all()
+
+      if (!id) {
+        response.unprocessableEntity({ error: 'Pass Valid Id In URL' })
+      }
       const validate = vine.compile(
         vine.object({
           status: vine.enum(['Pending', 'Completed', 'Shipped']),
@@ -85,21 +86,20 @@ export default class OrdersController {
       const verify = await validate.validate(status)
 
       if (verify) {
-        if (id) {
-          const getUser = await Order.findBy('order_item', id)
-          if (getUser) {
-            getUser.status = status.status
-            await getUser.save()
-            return {
-              massage: 'Status Updated Successfully',
-              data: getUser,
-            }
-          } else {
-            response.unprocessableEntity({ error: 'Pass Valid Id In URL' })
+        const getUser = await Order.findBy('order_item', id)
+
+        if (getUser) {
+          getUser.status = status.status
+          await getUser.save()
+          return {
+            massage: 'Status Updated Successfully',
+            data: getUser,
           }
         } else {
-          response.unprocessableEntity({ error: 'Please Pass Id In URL' })
+          response.unprocessableEntity({ error: 'Pass Valid Id In URL' })
         }
+      } else {
+        response.unprocessableEntity({ error: 'Please Pass Id In URL' })
       }
     } catch (err) {
       response.unprocessableEntity({ error: err })
@@ -122,6 +122,7 @@ export default class OrdersController {
       for (let element of billData) {
         totalBill += Number(element.total_price)
       }
+
       return { data: billData, totalBill, dataCount: billData.length }
     } catch (err) {}
   }

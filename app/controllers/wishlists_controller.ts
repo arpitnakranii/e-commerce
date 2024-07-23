@@ -6,19 +6,24 @@ export default class WishlistsController {
   async addWishList({ request, auth, response }: HttpContext) {
     try {
       const data = request.only(['product_id'])
+
       const validate = vine.compile(
         vine.object({
           product_id: vine.number(),
         })
       )
+
       const verify = await validate.validate(data)
+
       if (verify) {
         const check = await Wishlist.query().where('product_id', data.product_id)
-        if (check) {
+        console.log(check)
+        if (check.length > 0) {
           return response.unprocessableEntity({
             error: 'This Product Already Added In Your Wishlist ',
           })
         }
+
         const wishlist = new Wishlist()
         wishlist.user_id = auth.user?.id!
         wishlist.product_id = data.product_id
@@ -39,6 +44,7 @@ export default class WishlistsController {
         .where('user_id', auth.user?.id!)
         .preload('productData')
         .preload('userData')
+
       if (data) {
         return response
           .status(200)
@@ -55,7 +61,9 @@ export default class WishlistsController {
       if (!params.id) {
         return response.unprocessableEntity({ error: 'Pass Id in URl' })
       }
+
       const data = await Wishlist.query().where('id', params.id).first()
+
       if (data) {
         await data.delete()
         return { massage: 'Wishlist Delete Successfully' }

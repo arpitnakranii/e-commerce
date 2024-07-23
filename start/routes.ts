@@ -18,6 +18,7 @@ router.get('auth/password/reset/:id/:token', [AuthController, 'resetpassword']).
 router
   .group(() => {
     router.post('product/add', [ProductsController, 'createProduct'])
+
     router
       .group(() => {
         router.delete('product/delete/:id', [ProductsController, 'deleteProduct'])
@@ -26,27 +27,33 @@ router
       .use(middleware.checkOwnerShip())
 
     router.post('get/user', [AuthController, 'getUser'])
-    router.post('get/product', [ProductsController, 'getProduct'])
-    router.get('get/product/:id', [ProductsController, 'getSingleProduct'])
+
+    router.get('get/product/:page?/:limit?', [ProductsController, 'getProduct'])
+    router.get('get/single-product/:id?', [ProductsController, 'getSingleProduct'])
 
     router.post('category/add', [CategoriesController, 'addCategory'])
-    router.put('category/update/:id', [CategoriesController, 'updateCategory'])
-    router.post('get/category', [CategoriesController, 'getProduct'])
-    router.get('get/category/:id', [CategoriesController, 'getSignalProduct'])
+    router.put('category/update/:id?', [CategoriesController, 'updateCategory'])
+    router.get('get/category/:page?/:limit?', [CategoriesController, 'getProduct'])
+    router.get('get/category/:id?', [CategoriesController, 'getSignalProduct'])
 
     router.post('order/create', [OrderitemsController, 'createOrder'])
-    router.post('order/increase-quantity/:id', [OrderitemsController, 'increaseQuantity'])
-    router.post('order/decrease-quantity/:id', [OrderitemsController, 'decreaseQuantity'])
-    router.delete('order/delete/:id', [OrderitemsController, 'deleteOrder'])
+    router.post('order/increase-quantity/:id?', [OrderitemsController, 'increaseQuantity'])
+    router.post('order/decrease-quantity/:id?', [OrderitemsController, 'decreaseQuantity'])
+    router.delete('order/delete/:id?', [OrderitemsController, 'deleteOrder'])
 
     router.post('checkout/order', [OrdersController, 'createCheckOut'])
-    router.post('checkout/update/status/:id', [OrdersController, 'updateStatus'])
+    router.post('checkout/update/status/:id?', [OrdersController, 'updateStatus'])
     router.get('checkout/gen-bill', [OrdersController, 'genBill'])
 
-    router.post('product/review/:product_id', [ReviewsController, 'createReview'])
-    router.get('product/review/get/:review_id', [ReviewsController, 'getSingleReview'])
-    router.put('product/review/update/:review_id/:product_id', [ReviewsController, 'updateReview'])
-    router.delete('product/review/delete/:review_id/:product_id', [
+    router.post('product/review/:product_id?', [ReviewsController, 'createReview'])
+    router.get('product/review/get/:review_id?', [ReviewsController, 'getSingleReview'])
+
+    router.put('product/review/update/:review_id?/:product_id?', [
+      ReviewsController,
+      'updateReview',
+    ])
+
+    router.delete('product/review/delete/:review_id?/:product_id?', [
       ReviewsController,
       'deleteReview',
     ])
