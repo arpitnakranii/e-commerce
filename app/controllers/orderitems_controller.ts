@@ -72,11 +72,11 @@ export default class OrderitemsController {
     const verify = await validate.validate(Add)
 
     if (verify.quantity) {
-      const getUser = await Orderitem.query()
+      const getOrderItem = await Orderitem.query()
         .where('id', id)
         .increment('quantity', Number(Add.quantity))
 
-      if (getUser) {
+      if (getOrderItem) {
         return response
           .status(200)
           .json({ massage: 'Add Quantity SuccessFully', data: await Orderitem.find(id) })
@@ -101,18 +101,18 @@ export default class OrderitemsController {
     const verify = await validate.validate(Add)
 
     if (verify.quantity) {
-      const getUser = await Orderitem.find(id)
+      const getOrderItem = await Orderitem.find(id)
 
-      if (getUser) {
-        const temp = getUser.quantity
-        getUser.quantity = Number(getUser.quantity) - Number(Add.quantity)
+      if (getOrderItem) {
+        const temp = getOrderItem.quantity
+        getOrderItem.quantity = Number(getOrderItem.quantity) - Number(Add.quantity)
 
-        if (getUser.quantity < 0) {
-          getUser.quantity = temp
+        if (getOrderItem.quantity < 0) {
+          getOrderItem.quantity = temp
         }
 
-        await getUser.save()
-        return { massage: 'Minus Quantity SuccessFully', data: getUser }
+        await getOrderItem.save()
+        return { massage: 'Minus Quantity SuccessFully', data: getOrderItem }
       } else {
         return response.unprocessableEntity({ massage: 'Order Not Found' })
       }
@@ -126,10 +126,10 @@ export default class OrderitemsController {
       return response.unprocessableEntity({ error: 'Pass Valid Id in URL' })
     }
 
-    const getUser = await Orderitem.find(id)
-    if (getUser) {
-      await getUser.delete()
-      return { massage: 'Order Delete SuccessFully', data: getUser }
+    const getOrderItem = await Orderitem.find(id)
+    if (getOrderItem) {
+      await getOrderItem.delete()
+      return { massage: 'Order Delete SuccessFully', data: getOrderItem }
     } else {
       return response.unprocessableEntity({ massage: 'Plz Enter valid Id In URL' })
     }

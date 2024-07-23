@@ -105,10 +105,10 @@ export default class ProductsController {
       return { error: 'pass Id In URL' }
     }
 
-    const user = await Product.find(productId)
+    const product = await Product.find(productId)
 
-    if (user) {
-      await user.delete()
+    if (product) {
+      await product.delete()
       return {
         massage: 'Product Delete SuccessFully',
       }
@@ -123,9 +123,9 @@ export default class ProductsController {
     if (productId) {
       return response.unprocessableEntity({ error: 'pass valid Id in url' })
     }
-    const user = await Product.find(productId)
+    const product = await Product.find(productId)
 
-    if (user) {
+    if (product) {
       const data = request.all()
       const featuredImage = request.file('featured_image')
       const imgs = request.files('images')
@@ -154,19 +154,19 @@ export default class ProductsController {
 
       const verifyData = await validationData.validate(data)
 
-      user.name = data.name
-      user.slug = data.name.replaceAll(' ', '-').toLowerCase()
-      user.price = data.price
-      user.description = data.description
-      user.discount_price = data.discount_price
-      user.total_quantity = data.total_quantity
+      product.name = data.name
+      product.slug = data.name.replaceAll(' ', '-').toLowerCase()
+      product.price = data.price
+      product.description = data.description
+      product.discount_price = data.discount_price
+      product.total_quantity = data.total_quantity
 
       if (verifyData.featuredImage) {
         const featuredFileName = `${cuid()}.${featuredImage?.extname}`
         await featuredImage?.move(app.makePath('uploads/featuredImage'), {
           name: featuredFileName,
         })
-        user.featured_image = featuredFileName
+        product.featured_image = featuredFileName
       }
 
       if (verifyData.imgs) {
@@ -184,15 +184,15 @@ export default class ProductsController {
             return response.badRequest('Error Moving Files')
           }
         }
-        user.images = JSON.stringify(imgList)
+        product.images = JSON.stringify(imgList)
       }
 
-      user.updatedAt = DateTime.now()
-      await user.save()
+      product.updatedAt = DateTime.now()
+      await product.save()
 
       return {
         massage: 'Product Updated Successfully',
-        data: user,
+        data: product,
       }
     }
   }
@@ -229,15 +229,15 @@ export default class ProductsController {
       return response.unprocessableEntity({ error: 'Enter valid Id in url' })
     }
 
-    const user = await Product.query()
+    const product = await Product.query()
       .where('id', productId)
       .preload('catagorieData')
       .preload('userData')
 
-    if (user) {
+    if (product) {
       return {
         massage: 'Single Product Fetch SuccessFully',
-        data: user,
+        data: product,
       }
     }
   }

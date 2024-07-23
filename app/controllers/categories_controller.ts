@@ -51,9 +51,9 @@ export default class CategoriesController {
         return response.unprocessableEntity({ error: 'Pass Valid Id is In URL' })
       }
 
-      const getuser = await Category.find(id)
+      const getCategory = await Category.find(id)
 
-      if (getuser) {
+      if (getCategory) {
         const data = request.all()
         const validate = vine.compile(
           vine.object({
@@ -76,16 +76,16 @@ export default class CategoriesController {
           await img?.move(app.makePath('uploads/category images'), { name: filename })
         }
 
-        getuser.name = data.name
-        getuser.icon = data.icon
-        getuser.image = data.img.fileName
-        getuser.color = data.color
-        getuser.updatedAt = DateTime.now()
+        getCategory.name = data.name
+        getCategory.icon = data.icon
+        getCategory.image = data.img.fileName
+        getCategory.color = data.color
+        getCategory.updatedAt = DateTime.now()
 
-        await getuser.save()
+        await getCategory.save()
         return response
           .status(200)
-          .json({ massage: 'Category Updated successfully', data: getuser })
+          .json({ massage: 'Category Updated successfully', data: getCategory })
       }
     } catch (err) {
       return response.unprocessableEntity({ error: err })
@@ -97,10 +97,10 @@ export default class CategoriesController {
       const id = params.id
 
       if (id) {
-        const getUser = await Category.find(id)
+        const getCategory = await Category.find(id)
 
-        if (getUser) {
-          await getUser?.delete()
+        if (getCategory) {
+          await getCategory?.delete()
           return { massage: 'Category Deleted successfully' }
         } else {
           return response.unprocessableEntity({ error: 'plz Pass Valid id In URL' })
@@ -136,12 +136,12 @@ export default class CategoriesController {
       const id = params.id
 
       if (id) {
-        const getUser = await Category.find(id)
+        const getCategory = await Category.find(id)
 
-        if (getUser) {
+        if (getCategory) {
           return response
             .status(200)
-            .json({ massage: 'Signal Category Fetch successfully', data: getUser })
+            .json({ massage: 'Signal Category Fetch successfully', data: getCategory })
         } else {
           return response.unprocessableEntity({ error: 'plz Pass Valid id In URL' })
         }

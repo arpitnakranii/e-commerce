@@ -86,14 +86,14 @@ export default class OrdersController {
       const verify = await validate.validate(status)
 
       if (verify) {
-        const getUser = await Order.findBy('order_item', id)
+        const order = await Order.findBy('order_item', id)
 
-        if (getUser) {
-          getUser.status = status.status
-          await getUser.save()
+        if (order) {
+          order.status = status.status
+          await order.save()
           return {
             massage: 'Status Updated Successfully',
-            data: getUser,
+            data: order,
           }
         } else {
           response.unprocessableEntity({ error: 'Pass Valid Id In URL' })
