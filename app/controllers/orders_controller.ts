@@ -41,9 +41,12 @@ export default class OrdersController {
               (checkData.total_price =
                 Number(element.quantity) * Number(element.products.price) -
                 Number(element.products.discount_price)),
-              (checkData.user = element.user)
+              (checkData.user_id = element.user)
             await checkData.save()
-            const O = await Order.query().where('user', element.user!).preload('userData').first()
+            const O = await Order.query()
+              .where('user_id', element.user!)
+              .preload('userData')
+              .first()
             details.push(O)
           } else {
             let order = new Order()
@@ -58,7 +61,7 @@ export default class OrdersController {
               (order.total_price =
                 Number(element.quantity) * Number(element.products.price) -
                 Number(element.products.discount_price)),
-              (order.user = element.user)
+              (order.user_id = element.user)
             await order.save()
             details.push(order)
           }
@@ -66,7 +69,7 @@ export default class OrdersController {
         return details
       }
     } catch (err) {
-      return response.unprocessableEntity({ error: err })
+      return response.unprocessableEntity({ error: err.massage })
     }
   }
 
@@ -110,7 +113,7 @@ export default class OrdersController {
     try {
       const id = auth.user?.id
       const billData = await Order.query()
-        .where('user', id!)
+        .where('user_id', id!)
         .preload('userData')
         .preload('orderDetails', (orderDetailsQuery) => {
           orderDetailsQuery.preload('products', (categoryQuery) => {

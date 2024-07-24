@@ -37,7 +37,7 @@ export default class Order extends BaseModel {
   declare total_price: number
 
   @column()
-  declare user: number
+  declare user_id: number
 
   @column.dateTime()
   declare order_date: DateTime
@@ -49,7 +49,7 @@ export default class Order extends BaseModel {
   declare updatedAt: DateTime
 
   @belongsTo(() => User, {
-    foreignKey: 'user',
+    foreignKey: 'user_id',
   })
   declare userData: BelongsTo<typeof User>
 
