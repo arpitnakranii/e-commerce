@@ -224,7 +224,7 @@ export default class ProductsController {
 
   async getSingleProduct({ params, response }: HttpContext) {
     const productId = params.id
-    console.log(productId)
+
     if (!productId) {
       return response.unprocessableEntity({ error: 'Enter valid Id in url' })
     }

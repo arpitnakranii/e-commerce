@@ -17,7 +17,7 @@ export default class StripesController {
     try {
       const id = auth.user?.id
       const items: Map<number, Item> = new Map()
-      console.log(id)
+
       const billData = await Order.query()
         .where('user_id', id!)
         .andWhere('status', 'Pending')
@@ -28,7 +28,6 @@ export default class StripesController {
           })
         })
       if (billData.length === 0) {
-        console.log(billData)
         return response.unprocessableEntity('Order item is empty')
       }
 
@@ -55,7 +54,7 @@ export default class StripesController {
           if (!oreItemDetails) {
             throw new Error(`Item with id ${item.id} not found`)
           }
-          console.log(oreItemDetails)
+
           return {
             price_data: {
               currency: 'usd',
@@ -103,7 +102,6 @@ export default class StripesController {
 
       switch (event.type) {
         case 'charge.succeeded':
-          console.log('payment Done ')
           break
         case 'charge.failed':
           console.log('payment Failed ')

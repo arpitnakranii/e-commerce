@@ -11,8 +11,6 @@ const ProductsController = () => import('#controllers/products_controller')
 
 router.post('auth/login', [AuthController, 'login'])
 router.post('auth/register', [AuthController, 'register'])
-
-router.post('/webhook', [StripesController, 'handleWebhook'])
 router.get('auth/user', [AuthController, 'user']).use(middleware.auth({ guards: ['api'] }))
 router.get('auth/email/verify/:email/:id', [AuthController, 'verifyEmail']).as('verifyEmail')
 router.post('auth/password/forgot', [AuthController, 'forgetPassword'])

@@ -17,7 +17,7 @@ export default class WishlistsController {
 
       if (verify) {
         const check = await Wishlist.query().where('product_id', data.product_id)
-        console.log(check)
+
         if (check.length > 0) {
           return response.unprocessableEntity({
             error: 'This Product Already Added In Your Wishlist ',
