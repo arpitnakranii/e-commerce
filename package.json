@@ -56,11 +56,13 @@
     "@adonisjs/cors": "^2.2.1",
     "@adonisjs/lucid": "^21.1.0",
     "@adonisjs/mail": "^9.2.2",
+    "@adonisjs/session": "^7.4.2",
     "@vinejs/vine": "^2.1.0",
     "edge.js": "^6.0.2",
     "luxon": "^3.4.4",
     "mjml": "^4.15.3",
     "mysql2": "^3.10.2",
+    "ngrok": "^5.0.0-beta.2",
     "reflect-metadata": "^0.2.2",
     "slugify": "^1.6.6",
     "stripe": "^16.4.0"

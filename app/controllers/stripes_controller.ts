@@ -1,7 +1,7 @@
 import Order from '#models/order'
 import Product from '#models/product'
 import type { HttpContext } from '@adonisjs/core/http'
-import { url } from 'inspector'
+import { Session } from '@adonisjs/session'
 import Stripe from 'stripe'
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 interface Item {
@@ -21,12 +21,17 @@ export default class StripesController {
       console.log(id)
       const billData = await Order.query()
         .where('user_id', id!)
+        .andWhere('status', 'Pending')
         .preload('userData')
         .preload('orderDetails', (orderDetailsQuery) => {
           orderDetailsQuery.preload('products', (categoryQuery) => {
             categoryQuery.preload('catagorieData')
           })
         })
+      if (billData.length === 0) {
+        console.log(billData)
+        return response.unprocessableEntity('Order item is empty')
+      }
 
       for (let element of billData) {
         items.set(element.orderDetails.products.id, {
@@ -40,10 +45,10 @@ export default class StripesController {
       const storeItem: Map<number, StoreItem> = new Map()
 
       for (const element of product) {
-        storeItem.set(element.id, { price: Math.floor(element.price), name: element.name })
+        storeItem.set(element.id, { price: Math.floor(element.price) * 100, name: element.name })
       }
 
-      const session = await stripe.checkout.sessions.create({
+      const paymentSession = await stripe.checkout.sessions.create({
         payment_method_types: ['card', 'amazon_pay', 'us_bank_account'],
         mode: 'payment',
         line_items: Array.from(items.values()).map((item: Item) => {
@@ -66,16 +71,60 @@ export default class StripesController {
         success_url: 'https://yourdomain.com/success?session_id={CHECKOUT_SESSION_ID}',
         cancel_url: 'https://yourdomain.com/cancel',
       })
-
-      console.log(session.url)
-      for (let element of billData) {
-        element.status = 'Completed'
-        await element.save()
-      }
-      response.redirect(session.url!)
-      return response.status(201).json({ url: session.url })
+      return response.status(201).json({ url: paymentSession.url })
     } catch (err) {
       return response.unprocessableEntity({ error: err })
+    }
+  }
+
+  async getPaymentData({ response, session }: HttpContext) {
+    try {
+      const paymentData = await stripe.checkout.sessions.retrieve(session.get('sessionId'))
+      return { paymentData }
+    } catch (err) {
+      response.unprocessableEntity({ error: err })
+    }
+  }
+  async handleWebhook({ request, response }: HttpContext) {
+    request.header('Content-Type', 'application/json')
+    const sig = request.header('stripe-signature') // Extract the stripe-signature header
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!
+    if (!sig) {
+      console.error('Stripe signature header is missing')
+      return response
+        .status(400)
+        .type('application/json')
+        .send({ error: 'Missing stripe-signature header' })
+    }
+    let event: Stripe.Event
+    // Get the raw body of the request
+    const rawBody = request.raw()
+
+    try {
+      // Verify the webhook event using the raw body and signature
+      event = stripe.webhooks.constructEvent(rawBody!, sig, endpointSecret)
+
+      switch (event.type) {
+        case 'charge.succeeded':
+          console.log('payment Done ')
+          break
+        case 'charge.failed':
+          console.log('payment Failed ')
+          break
+        case 'charge.refunded':
+          console.log('payment Refunded ')
+          break
+        default:
+          console.log(`Unhandled event type ${event.type}`)
+      }
+
+      response.status(200).type('application/json').send({ message: 'Event received' })
+    } catch (err) {
+      console.error('Webhook Error:', err.message)
+      return response
+        .status(400)
+        .type('application/json')
+        .send({ error: `Webhook Error: ${err.message}` })
     }
   }
 }

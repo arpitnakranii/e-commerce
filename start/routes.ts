@@ -1,7 +1,6 @@
 const AuthController = () => import('#controllers/auth_controller')
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
-import Orderitem from '#models/orderitem'
 const StripesController = () => import('#controllers/stripes_controller')
 const ReviewsController = () => import('#controllers/reviews_controller')
 const WishlistsController = () => import('#controllers/wishlists_controller')
@@ -13,11 +12,12 @@ const ProductsController = () => import('#controllers/products_controller')
 router.post('auth/login', [AuthController, 'login'])
 router.post('auth/register', [AuthController, 'register'])
 
+router.post('/webhook', [StripesController, 'handleWebhook'])
 router.get('auth/user', [AuthController, 'user']).use(middleware.auth({ guards: ['api'] }))
 router.get('auth/email/verify/:email/:id', [AuthController, 'verifyEmail']).as('verifyEmail')
 router.post('auth/password/forgot', [AuthController, 'forgetPassword'])
 router.get('auth/password/reset/:id/:token', [AuthController, 'resetpassword']).as('resetpassword')
-
+router.get('payment', [StripesController, 'getPaymentData'])
 router
   .group(() => {
     router.post('product/add', [ProductsController, 'createProduct'])
