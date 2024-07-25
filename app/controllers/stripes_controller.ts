@@ -1,7 +1,6 @@
 import Order from '#models/order'
 import Product from '#models/product'
 import type { HttpContext } from '@adonisjs/core/http'
-import { Session } from '@adonisjs/session'
 import Stripe from 'stripe'
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 interface Item {
