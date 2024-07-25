@@ -68,8 +68,8 @@ export default class StripesController {
             quantity: item.quantity,
           }
         }),
-        success_url: 'https://yourdomain.com/success?session_id={CHECKOUT_SESSION_ID}',
-        cancel_url: 'https://yourdomain.com/cancel',
+        success_url: 'https://www.youtube.com/',
+        cancel_url: 'https://www.youtube.com/',
       })
       return response.status(201).json({ url: paymentSession.url })
     } catch (err) {
@@ -97,11 +97,9 @@ export default class StripesController {
         .send({ error: 'Missing stripe-signature header' })
     }
     let event: Stripe.Event
-    // Get the raw body of the request
     const rawBody = request.raw()
 
     try {
-      // Verify the webhook event using the raw body and signature
       event = stripe.webhooks.constructEvent(rawBody!, sig, endpointSecret)
 
       switch (event.type) {
