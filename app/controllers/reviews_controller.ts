@@ -3,7 +3,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import vine from '@vinejs/vine'
 
 export default class ReviewsController {
-  async createReview({ request, auth, params, response }: HttpContext) {
+  async create({ request, auth, params, response }: HttpContext) {
     try {
       const productId = params.product_id
       const userId = auth.user?.id
@@ -28,6 +28,7 @@ export default class ReviewsController {
         .where('id', reviewData.id)
         .preload('products')
         .preload('userData')
+
       return {
         massage: 'Review created Successfully',
         data: disData,
@@ -37,7 +38,7 @@ export default class ReviewsController {
     }
   }
 
-  async getSingleReview({ response, params }: HttpContext) {
+  async getSingle({ response, params }: HttpContext) {
     try {
       const reviewId = params.review_id
 
@@ -51,7 +52,7 @@ export default class ReviewsController {
       return response.unprocessableEntity({ error: err })
     }
   }
-  async updateReview({ response, params, request, auth }: HttpContext) {
+  async update({ response, params, request, auth }: HttpContext) {
     try {
       const userId = auth.user?.id
       const productId = params.product_id
@@ -63,32 +64,32 @@ export default class ReviewsController {
         .andWhere('product_id', productId)
         .first()
 
-      if (reviewData) {
-        if (reviewData.user_id !== userId)
-          return response.forbidden({ massage: 'You do not have permission to modify this review' })
+      if (!reviewData) return { massage: 'Data Not Found' }
 
-        const validate = vine.compile(
-          vine.object({
-            rating: vine.number().min(1).max(5),
-            comment: vine.string(),
-          })
-        )
+      if (reviewData.user_id !== userId)
+        return response.forbidden({ massage: 'You do not have permission to modify this review' })
 
-        const verify = await validate.validate(data)
+      const validate = vine.compile(
+        vine.object({
+          rating: vine.number().min(1).max(5),
+          comment: vine.string(),
+        })
+      )
 
-        if (verify) {
-          reviewData.rating = data.rating
-          reviewData.comment = data.comment
-          await reviewData.save()
-          const updatedData = await Review.query()
-            .where('id', params.review_id)
-            .andWhere('product_id', productId)
-            .andWhere('user_id', userId!)
-            .preload('products')
-            .preload('userData')
+      const verify = await validate.validate(data)
 
-          return { massage: 'Review Updated', updatedData: updatedData }
-        }
+      if (verify) {
+        reviewData.rating = data.rating
+        reviewData.comment = data.comment
+        await reviewData.save()
+        const updatedData = await Review.query()
+          .where('id', params.review_id)
+          .andWhere('product_id', productId)
+          .andWhere('user_id', userId!)
+          .preload('products')
+          .preload('userData')
+
+        return { massage: 'Review Updated', updatedData: updatedData }
       }
 
       return { massage: 'Review Fetch Successfully', data: reviewData }
@@ -96,7 +97,7 @@ export default class ReviewsController {
       return response.unprocessableEntity({ error: err })
     }
   }
-  async deleteReview({ response, params, auth }: HttpContext) {
+  async delete({ response, params, auth }: HttpContext) {
     try {
       const reviewId = params.review_id
       const productId = params.product_id
@@ -106,6 +107,8 @@ export default class ReviewsController {
         .where('id', reviewId)
         .andWhere('product_id', productId)
         .first()
+
+      if (!reviewData) return { massage: 'Data Not Found' }
 
       if (reviewData?.user_id !== userId)
         return response.forbidden({ massage: 'You do not have permission to modify this review' })

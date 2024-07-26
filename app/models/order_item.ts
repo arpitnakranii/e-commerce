@@ -4,7 +4,7 @@ import Product from '#models/product'
 import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
 import User from '#models/user'
 
-export default class Orderitem extends BaseModel {
+export default class OrderItem extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
 
@@ -33,6 +33,6 @@ export default class Orderitem extends BaseModel {
   })
   declare userData: BelongsTo<typeof User>
 
-  @hasMany(() => Orderitem)
-  declare orderitems: HasMany<typeof Orderitem>
+  @hasMany(() => OrderItem)
+  declare order_items: HasMany<typeof OrderItem>
 }

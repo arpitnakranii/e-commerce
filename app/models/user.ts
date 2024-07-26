@@ -4,7 +4,7 @@ import { compose } from '@adonisjs/core/helpers'
 import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
-import Orderitem from './order_item.js'
+import Order_item from './order_item.js'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
 import Wishlist from '#models/wishlist'
 
@@ -37,8 +37,8 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   static accessTokens = DbAccessTokensProvider.forModel(User)
 
-  @hasMany(() => Orderitem)
-  declare items: HasMany<typeof Orderitem>
+  @hasMany(() => Order_item)
+  declare items: HasMany<typeof Order_item>
 
   @hasMany(() => Wishlist)
   declare wishlist: HasMany<typeof Wishlist>

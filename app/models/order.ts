@@ -1,9 +1,9 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
+import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
 import User from '#models/user'
-import type { BelongsTo, HasMany } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import Product from './product.js'
-import Orderitem from './order_item.js'
+import Order_item from './order_item.js'
 
 export default class Order extends BaseModel {
   @column({ isPrimary: true })
@@ -56,10 +56,10 @@ export default class Order extends BaseModel {
   @belongsTo(() => Product, {
     foreignKey: 'order_item',
   })
-  declare ProdductData: BelongsTo<typeof Product>
+  declare ProductData: BelongsTo<typeof Product>
 
-  @belongsTo(() => Orderitem, {
+  @belongsTo(() => Order_item, {
     foreignKey: 'order_item',
   })
-  declare orderDetails: BelongsTo<typeof Orderitem>
+  declare orderDetails: BelongsTo<typeof Order_item>
 }

@@ -91,17 +91,15 @@ export default class OrdersController {
       if (verify) {
         const order = await Order.findBy('order_item', id)
 
-        if (order) {
-          order.status = status.status
-          await order.save()
+        if (!order) return { massage: 'Data not Found' }
 
-          return {
-            massage: 'Status Updated Successfully',
-            data: order,
-          }
+        order.status = status.status
+        await order.save()
+
+        return {
+          massage: 'Status Updated Successfully',
+          data: order,
         }
-
-        return { massage: 'Data not Found' }
       }
     } catch (err) {
       response.unprocessableEntity({ error: err })

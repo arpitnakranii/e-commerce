@@ -3,7 +3,7 @@ import { BaseModel, column, belongsTo, hasMany, manyToMany } from '@adonisjs/luc
 
 import Category from '#models/category'
 import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
-import Orderitem from '#models/order_item'
+import Order_item from '#models/order_item'
 import Review from '#models/review'
 import Wishlist from '#models/wishlist'
 import User from './user.js'
@@ -56,8 +56,8 @@ export default class Product extends BaseModel {
   })
   declare userData: BelongsTo<typeof User>
 
-  @hasMany(() => Orderitem)
-  declare orderitems: HasMany<typeof Orderitem>
+  @hasMany(() => Order_item)
+  declare order_items: HasMany<typeof Order_item>
 
   @hasMany(() => Review)
   declare review: HasMany<typeof Review>

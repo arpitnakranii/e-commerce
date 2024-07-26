@@ -19,43 +19,36 @@ router.get('payment', [StripesController, 'getPaymentData'])
 router
   .group(() => {
     router.post('product/add', [ProductsController, 'create'])
-
     router.delete('product/delete/:id', [ProductsController, 'delete'])
     router.put('product/update/:id', [ProductsController, 'update'])
-
-    router.delete('product/wishlist/:id', [WishlistsController, 'deleteWishlist'])
-
-    router.put('product/review/update/:review_id /:product_id', [ReviewsController, 'updateReview'])
-
-    router.delete('product/review/delete/:review_id /:product_id', [
-      ReviewsController,
-      'deleteReview',
-    ])
+    router.get('product/', [ProductsController, 'get'])
+    router.get('product/:id', [ProductsController, 'getSingle'])
 
     router.get('get/user', [AuthController, 'getUser'])
-    router.get('get/product/', [ProductsController, 'get'])
-    router.get('get/product/:id', [ProductsController, 'getSingle'])
 
     router.post('category/add', [CategoriesController, 'add'])
     router.delete('category/delete/:id', [CategoriesController, 'delete'])
     router.put('category/update/:id', [CategoriesController, 'update'])
-    router.get('get/category', [CategoriesController, 'get'])
-    router.get('get/category/:id', [CategoriesController, 'getSignal'])
+    router.get('category', [CategoriesController, 'get'])
+    router.get('category/:id', [CategoriesController, 'getSignal'])
 
-    router.post('order/create', [OrderItemsController, 'createOrder'])
+    router.post('order/create', [OrderItemsController, 'create'])
     router.post('order/increase-quantity/:id', [OrderItemsController, 'increaseQuantity'])
     router.post('order/decrease-quantity/:id', [OrderItemsController, 'decreaseQuantity'])
-    router.delete('order/delete/:id', [OrderItemsController, 'deleteOrder'])
+    router.delete('order/delete/:id', [OrderItemsController, 'delete'])
 
     router.post('checkout/order', [OrdersController, 'createCheckOut'])
     router.post('checkout/update/status/:id', [OrdersController, 'updateStatus'])
     router.get('checkout/gen-bill', [OrdersController, 'genBill'])
 
-    router.post('product/review/:product_id', [ReviewsController, 'createReview'])
-    router.get('product/review/get/:review_id', [ReviewsController, 'getSingleReview'])
+    router.post('product/review/:product_id', [ReviewsController, 'create'])
+    router.get('product/review/get/:review_id', [ReviewsController, 'getSingle'])
+    router.put('product/review/update/:review_id/:product_id', [ReviewsController, 'update'])
+    router.delete('product/review/delete/:review_id/:product_id', [ReviewsController, 'delete'])
 
     router.post('product/wishlist', [WishlistsController, 'addWishList'])
     router.get('product/wishlist/get', [WishlistsController, 'getAllWishList'])
+    router.delete('product/wishlist/delete/:id', [WishlistsController, 'deleteWishlist'])
 
     router.post('payment', [StripesController, 'createCheckout'])
   })

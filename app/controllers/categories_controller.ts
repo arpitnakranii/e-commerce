@@ -15,7 +15,6 @@ export default class CategoriesController {
         })
       )
 
-      data.icon = 'icon-' + data.name.toLowerCase()
       const verify = await validate.validate(data)
 
       if (verify) {
@@ -46,24 +45,22 @@ export default class CategoriesController {
         })
       )
       const verify = await validate.validate(data)
-      if (getCategory) {
-        console.log(getCategory.user_id, ' ', userId)
-        if (getCategory.user_id !== userId)
-          return response.forbidden({
-            massage: 'You do not have permission to modify this category',
-          })
 
-        if (verify) {
-          data.icon = 'icon-' + data.name.toLowerCase()
-          getCategory.name = data.name
-          getCategory.color = data.color
-          getCategory.updatedAt = DateTime.now()
+      if (!getCategory) return { massage: 'Data Not Found' }
 
-          await getCategory.save()
-          return { massage: 'Category Updated successfully', data: getCategory }
-        }
+      if (getCategory.user_id !== userId)
+        return response.forbidden({
+          massage: 'You do not have permission to modify this category',
+        })
+
+      if (verify) {
+        getCategory.name = data.name
+        getCategory.color = data.color
+        getCategory.updatedAt = DateTime.now()
+
+        await getCategory.save()
+        return { massage: 'Category Updated successfully', data: getCategory }
       }
-      return { massage: 'Data Not Found' }
     } catch (err) {
       return response.unprocessableEntity({ error: err })
     }
@@ -76,17 +73,15 @@ export default class CategoriesController {
 
       const getCategory = await Category.find(id)
 
-      if (getCategory) {
-        if (getCategory.user_id !== userId)
-          return response.forbidden({
-            massage: 'You do not have permission to modify this category',
-          })
+      if (!getCategory) return { massage: 'Data Not Found' }
 
-        await getCategory?.delete()
-        return { massage: 'Category Deleted successfully' }
-      }
+      if (getCategory.user_id !== userId)
+        return response.forbidden({
+          massage: 'You do not have permission to modify this category',
+        })
 
-      return { massage: 'Data Not Found' }
+      await getCategory?.delete()
+      return { massage: 'Category Deleted successfully' }
     } catch (err) {
       return response.unprocessableEntity({ error: err })
     }
@@ -97,6 +92,7 @@ export default class CategoriesController {
       const page = request.input('page') || 1
       const limit = request.input('limit') || 50
       const categoryData = await Category.query().select('*').paginate(page, limit)
+
       return response
         .status(200)
         .json({ massage: 'Category Fetch successfully', data: categoryData })
@@ -110,13 +106,11 @@ export default class CategoriesController {
       const id = params.id
       const getCategory = await Category.find(id)
 
-      if (getCategory) {
-        return response
-          .status(200)
-          .json({ massage: 'Signal Category Fetch successfully', data: getCategory })
-      }
+      if (!getCategory) return { massage: ' Data not Found' }
 
-      return { massage: ' Data not Found' }
+      return response
+        .status(200)
+        .json({ massage: 'Signal Category Fetch successfully', data: getCategory })
     } catch (err) {
       return response.unprocessableEntity({ error: err })
     }

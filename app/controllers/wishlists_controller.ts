@@ -45,13 +45,11 @@ export default class WishlistsController {
         .preload('productData')
         .preload('userData')
 
-      if (data) {
-        return response
-          .status(200)
-          .json({ massage: 'Fetch Wishlist Successfully', wishlistData: data })
-      }
+      if (!data) return { massage: 'Data Not Found' }
 
-      return response.unprocessableEntity({ error: 'empty' })
+      return response
+        .status(200)
+        .json({ massage: 'Fetch Wishlist Successfully', wishlistData: data })
     } catch (err) {
       return response.unprocessableEntity({ error: err })
     }
@@ -62,14 +60,13 @@ export default class WishlistsController {
       const userId = auth.user?.id
       const data = await Wishlist.query().where('id', id).first()
 
-      if (data) {
-        if (data.user_id !== userId)
-          return { massage: 'You do not have permission to modify this wishlist' }
+      if (!data) return { massage: 'Data Not Found' }
 
-        await data.delete()
-        return { massage: 'Wishlist Delete Successfully' }
-      }
-      return response.unprocessableEntity({ error: 'Data Not Found Please Pass Valid Id' })
+      if (data.user_id !== userId)
+        return { massage: 'You do not have permission to modify this wishlist' }
+
+      await data.delete()
+      return { massage: 'Wishlist Delete Successfully' }
     } catch (err) {
       return response.unprocessableEntity({ error: err })
     }

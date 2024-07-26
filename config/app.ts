@@ -11,11 +11,6 @@ import { defineConfig } from '@adonisjs/core/http'
  * changed. Therefore it is recommended to keep the app key secure.
  */
 export const appKey = new Secret(env.get('APP_KEY'))
-const providers = [
-  '@adonisjs/framework/providers/AppProvider',
-  '@adonisjs/view/providers/ViewProvider',
-  '@adonisjs/mail/providers/MailProvider',
-]
 /**
  * The configuration settings used by the HTTP server
  */

@@ -12,7 +12,7 @@ export default class extends BaseSchema {
         .references('id')
         .inTable('products')
         .onDelete('CASCADE')
-      table.integer('ueser_id').unsigned().references('id').inTable('users').onDelete('CASCADE')
+      table.integer('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE')
       table.integer('rating')
       table.text('comment')
       table.timestamps(true, true)

@@ -4,7 +4,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import vine from '@vinejs/vine'
 
 export default class OrderItemsController {
-  async createOrder({ request, response, auth }: HttpContext) {
+  async create({ request, response, auth }: HttpContext) {
     try {
       const currentUser = await auth.user
       const UserId = currentUser?.$attributes['id']
@@ -73,17 +73,15 @@ export default class OrderItemsController {
         .where('id', id)
         .increment('quantity', Number(Add.quantity))
 
-      if (getOrderItem) {
-        return response
-          .status(200)
-          .json({ massage: 'Add Quantity SuccessFully', data: await order_item.find(id) })
-      }
+      if (!getOrderItem) return response.unprocessableEntity({ massage: 'Order Not Found' })
 
-      return response.unprocessableEntity({ massage: 'Order Not Found' })
+      return response
+        .status(200)
+        .json({ massage: 'Add Quantity SuccessFully', data: await order_item.find(id) })
     }
   }
 
-  async decreaseQuantity({ params, response, request }: HttpContext) {
+  async decreaseQuantity({ params, request }: HttpContext) {
     const id = params.id
     const Add = request.only(['quantity'])
 
@@ -97,32 +95,30 @@ export default class OrderItemsController {
     if (verify.quantity) {
       const getOrderItem = await order_item.find(id)
 
-      if (getOrderItem) {
-        const temp = getOrderItem.quantity
-        getOrderItem.quantity = Number(getOrderItem.quantity) - Number(Add.quantity)
+      if (!getOrderItem) return { massage: 'Data Not Found' }
 
-        if (getOrderItem.quantity < 0) {
-          getOrderItem.quantity = temp
-        }
+      const temp = getOrderItem.quantity
+      getOrderItem.quantity = Number(getOrderItem.quantity) - Number(Add.quantity)
 
-        await getOrderItem.save()
-        return { massage: 'Minus Quantity SuccessFully', data: getOrderItem }
+      if (getOrderItem.quantity < 0) {
+        getOrderItem.quantity = temp
       }
 
-      return response.unprocessableEntity({ massage: 'Order Not Found' })
+      await getOrderItem.save()
+      return { massage: 'Minus Quantity SuccessFully', data: getOrderItem }
     }
   }
 
-  async deleteOrder({ params }: HttpContext) {
+  async delete({ params }: HttpContext) {
     const id = params.id
 
     const getOrderItem = await order_item.find(id)
+
+    if (!getOrderItem) return { massage: 'Plz Enter valid Id In URL' }
 
     if (getOrderItem) {
       await getOrderItem.delete()
       return { massage: 'Order Delete SuccessFully', data: getOrderItem }
     }
-
-    return { massage: 'Plz Enter valid Id In URL' }
   }
 }

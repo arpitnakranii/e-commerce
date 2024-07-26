@@ -177,8 +177,14 @@ export default class AuthController {
     return { success: 'Password reset successfully.' }
   }
 
-  async getUser({}: HttpContext) {
-    const userData = await User.query().select('*').orderBy('id').paginate(1, 50)
+  async getUser({ request }: HttpContext) {
+    const page = request.input('page') || 1
+    const limit = request.input('limit') || 50
+
+    const userData = await User.query().select('*').orderBy('id').paginate(page, limit)
+
+    if (!userData) return { massage: 'Data Not Found' }
+
     return {
       massage: 'User Data Fetch Successfully',
       data: userData,
