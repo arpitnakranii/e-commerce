@@ -1,6 +1,6 @@
 import Order from '#models/order'
 
-import Orderitem from '#models/orderitem'
+import Order_item from '#models/order_item'
 import type { HttpContext } from '@adonisjs/core/http'
 import vine from '@vinejs/vine'
 
@@ -24,7 +24,7 @@ export default class OrdersController {
       const verify = await validate.validate(data)
 
       if (verify) {
-        const findOrder = await Orderitem.query().where('user', userId!).preload('products')
+        const findOrder = await Order_item.query().where('user', userId!).preload('products')
 
         const details = []
 
@@ -42,7 +42,9 @@ export default class OrdersController {
                 Number(element.quantity) * Number(element.products.price) -
                 Number(element.products.discount_price)),
               (checkData.user_id = element.user)
+
             await checkData.save()
+
             const O = await Order.query()
               .where('user_id', element.user!)
               .preload('userData')
@@ -62,6 +64,7 @@ export default class OrdersController {
                 Number(element.quantity) * Number(element.products.price) -
                 Number(element.products.discount_price)),
               (order.user_id = element.user)
+
             await order.save()
             details.push(order)
           }
@@ -78,9 +81,6 @@ export default class OrdersController {
       const id = params.id
       const status = request.all()
 
-      if (!id) {
-        response.unprocessableEntity({ error: 'Pass Valid Id In URL' })
-      }
       const validate = vine.compile(
         vine.object({
           status: vine.enum(['Pending', 'Completed', 'Shipped']),
@@ -94,15 +94,14 @@ export default class OrdersController {
         if (order) {
           order.status = status.status
           await order.save()
+
           return {
             massage: 'Status Updated Successfully',
             data: order,
           }
-        } else {
-          response.unprocessableEntity({ error: 'Pass Valid Id In URL' })
         }
-      } else {
-        response.unprocessableEntity({ error: 'Please Pass Id In URL' })
+
+        return { massage: 'Data not Found' }
       }
     } catch (err) {
       response.unprocessableEntity({ error: err })
@@ -112,12 +111,13 @@ export default class OrdersController {
   async genBill({ auth }: HttpContext) {
     try {
       const id = auth.user?.id
+
       const billData = await Order.query()
         .where('user_id', id!)
         .preload('userData')
         .preload('orderDetails', (orderDetailsQuery) => {
           orderDetailsQuery.preload('products', (categoryQuery) => {
-            categoryQuery.preload('catagorieData')
+            categoryQuery.preload('catagoriesData')
           })
         })
 
@@ -127,6 +127,8 @@ export default class OrdersController {
       }
 
       return { data: billData, totalBill, dataCount: billData.length }
-    } catch (err) {}
+    } catch (err) {
+      return { error: err }
+    }
   }
 }

@@ -3,7 +3,7 @@ import { BaseModel, column, hasMany, manyToMany } from '@adonisjs/lucid/orm'
 import Product from '#models/product'
 
 import type { HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
-import Orderitem from './orderitem.js'
+import Orderitem from './order_item.js'
 
 export default class Category extends BaseModel {
   @column({ isPrimary: true })
@@ -19,10 +19,7 @@ export default class Category extends BaseModel {
   declare color: string
 
   @column()
-  declare icon: string
-
-  @column()
-  declare image: string
+  declare user_id: number
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime

@@ -1,9 +1,9 @@
-import Orderitem from '#models/orderitem'
+import order_item from '#models/order_item'
 import Product from '#models/product'
 import type { HttpContext } from '@adonisjs/core/http'
 import vine from '@vinejs/vine'
 
-export default class OrderitemsController {
+export default class OrderItemsController {
   async createOrder({ request, response, auth }: HttpContext) {
     try {
       const currentUser = await auth.user
@@ -20,7 +20,7 @@ export default class OrderitemsController {
       const verify = await validate.validate(data)
 
       if (verify.product && verify.quantity) {
-        const getData = await Orderitem.findBy('product', data.product)
+        const getData = await order_item.findBy('product', data.product)
         const productData = await Product.find(data.product)
 
         if (getData) {
@@ -36,7 +36,7 @@ export default class OrderitemsController {
           await productData?.save()
           return { massage: 'Order updated Successfully', data: getData }
         } else {
-          const orderData = new Orderitem()
+          const orderData = new order_item()
           orderData.product = data.product
           orderData.quantity = data.quantity
           productData!.total_quantity = Number(productData?.total_quantity) - Number(data.quantity)
@@ -60,10 +60,6 @@ export default class OrderitemsController {
     const id = params.id
     const Add = request.only(['quantity'])
 
-    if (!id) {
-      return response.unprocessableEntity({ error: 'Unknown URL' })
-    }
-
     const validate = vine.compile(
       vine.object({
         quantity: vine.number().min(1),
@@ -72,17 +68,18 @@ export default class OrderitemsController {
     const verify = await validate.validate(Add)
 
     if (verify.quantity) {
-      const getOrderItem = await Orderitem.query()
+      const getOrderItem = await order_item
+        .query()
         .where('id', id)
         .increment('quantity', Number(Add.quantity))
 
       if (getOrderItem) {
         return response
           .status(200)
-          .json({ massage: 'Add Quantity SuccessFully', data: await Orderitem.find(id) })
-      } else {
-        return response.unprocessableEntity({ massage: 'Order Not Found' })
+          .json({ massage: 'Add Quantity SuccessFully', data: await order_item.find(id) })
       }
+
+      return response.unprocessableEntity({ massage: 'Order Not Found' })
     }
   }
 
@@ -90,9 +87,6 @@ export default class OrderitemsController {
     const id = params.id
     const Add = request.only(['quantity'])
 
-    if (!id) {
-      return response.unprocessableEntity({ error: 'Unknown URL' })
-    }
     const validate = vine.compile(
       vine.object({
         quantity: vine.number().min(1),
@@ -101,7 +95,7 @@ export default class OrderitemsController {
     const verify = await validate.validate(Add)
 
     if (verify.quantity) {
-      const getOrderItem = await Orderitem.find(id)
+      const getOrderItem = await order_item.find(id)
 
       if (getOrderItem) {
         const temp = getOrderItem.quantity
@@ -113,25 +107,22 @@ export default class OrderitemsController {
 
         await getOrderItem.save()
         return { massage: 'Minus Quantity SuccessFully', data: getOrderItem }
-      } else {
-        return response.unprocessableEntity({ massage: 'Order Not Found' })
       }
+
+      return response.unprocessableEntity({ massage: 'Order Not Found' })
     }
   }
 
-  async deleteOrder({ params, response }: HttpContext) {
+  async deleteOrder({ params }: HttpContext) {
     const id = params.id
 
-    if (!id) {
-      return response.unprocessableEntity({ error: 'Pass Valid Id in URL' })
-    }
+    const getOrderItem = await order_item.find(id)
 
-    const getOrderItem = await Orderitem.find(id)
     if (getOrderItem) {
       await getOrderItem.delete()
       return { massage: 'Order Delete SuccessFully', data: getOrderItem }
-    } else {
-      return response.unprocessableEntity({ massage: 'Plz Enter valid Id In URL' })
     }
+
+    return { massage: 'Plz Enter valid Id In URL' }
   }
 }

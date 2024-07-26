@@ -1,127 +1,101 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import app from '@adonisjs/core/services/app'
 import vine from '@vinejs/vine'
-import { cuid } from '@adonisjs/core/helpers'
 import Category from '#models/category'
 import { DateTime } from 'luxon'
 
 export default class CategoriesController {
-  async addCategory({ request, response }: HttpContext) {
+  async add({ request, response, auth }: HttpContext) {
     try {
       const data = request.all()
+      const userId = auth.user?.id
+      const validate = vine.compile(
+        vine.object({
+          name: vine.string().minLength(1),
+          color: vine.string().minLength(7).maxLength(7),
+        })
+      )
+
+      data.icon = 'icon-' + data.name.toLowerCase()
+      const verify = await validate.validate(data)
+
+      if (verify) {
+        const category = new Category()
+        category.name = data.name
+        category.color = data.color
+        category.user_id = userId!
+        await category.save()
+
+        return { massage: 'Category add successfully', data: data }
+      }
+    } catch (err) {
+      return response.unprocessableEntity({ error: err })
+    }
+  }
+
+  async update({ params, response, request, auth }: HttpContext) {
+    try {
+      const id = params.id
+      const data = request.all()
+      const userId = auth.user?.id
+      const getCategory = await Category.find(id)
 
       const validate = vine.compile(
         vine.object({
           name: vine.string().minLength(1),
           color: vine.string().minLength(7).maxLength(7),
-          img: vine.file({
-            size: '1mb',
-            extnames: ['jpg', 'png'],
-          }),
         })
       )
-
-      data.icon = 'icon-' + data.name.toLowerCase()
-      const img = request.file('image')
-      data.img = img
       const verify = await validate.validate(data)
-      const filename = `${cuid()}.${img?.extname}`
+      if (getCategory) {
+        console.log(getCategory.user_id, ' ', userId)
+        if (getCategory.user_id !== userId)
+          return response.forbidden({
+            massage: 'You do not have permission to modify this category',
+          })
 
-      if (verify.img) {
-        await img?.move(app.makePath('uploads/category images'), { name: filename })
+        if (verify) {
+          data.icon = 'icon-' + data.name.toLowerCase()
+          getCategory.name = data.name
+          getCategory.color = data.color
+          getCategory.updatedAt = DateTime.now()
+
+          await getCategory.save()
+          return { massage: 'Category Updated successfully', data: getCategory }
+        }
       }
-
-      const category = new Category()
-      category.name = data.name
-      category.icon = data.icon
-      category.image = data.img.fileName
-      category.color = data.color
-      await category.save()
-      return { massage: 'Category add successfully', data: data }
+      return { massage: 'Data Not Found' }
     } catch (err) {
       return response.unprocessableEntity({ error: err })
     }
   }
 
-  async updateCategory({ params, response, request }: HttpContext) {
+  async delete({ params, response, auth }: HttpContext) {
     try {
       const id = params.id
-
-      if (!id) {
-        return response.unprocessableEntity({ error: 'Pass Valid Id is In URL' })
-      }
+      const userId = auth.user?.id
 
       const getCategory = await Category.find(id)
 
       if (getCategory) {
-        const data = request.all()
-        const validate = vine.compile(
-          vine.object({
-            name: vine.string().minLength(1),
-            color: vine.string().minLength(7).maxLength(7),
-            img: vine.file({
-              size: '1mb',
-              extnames: ['jpg', 'png'],
-            }),
+        if (getCategory.user_id !== userId)
+          return response.forbidden({
+            massage: 'You do not have permission to modify this category',
           })
-        )
 
-        data.icon = 'icon-' + data.name.toLowerCase()
-        const img = request.file('image')
-        data.img = img
-        const verify = await validate.validate(data)
-        const filename = `${cuid()}.${img?.extname}`
-
-        if (verify.img) {
-          await img?.move(app.makePath('uploads/category images'), { name: filename })
-        }
-
-        getCategory.name = data.name
-        getCategory.icon = data.icon
-        getCategory.image = data.img.fileName
-        getCategory.color = data.color
-        getCategory.updatedAt = DateTime.now()
-
-        await getCategory.save()
-        return response
-          .status(200)
-          .json({ massage: 'Category Updated successfully', data: getCategory })
+        await getCategory?.delete()
+        return { massage: 'Category Deleted successfully' }
       }
+
+      return { massage: 'Data Not Found' }
     } catch (err) {
       return response.unprocessableEntity({ error: err })
     }
   }
 
-  async deleteProduct({ params, response }: HttpContext) {
+  async get({ response, request }: HttpContext) {
     try {
-      const id = params.id
-
-      if (id) {
-        const getCategory = await Category.find(id)
-
-        if (getCategory) {
-          await getCategory?.delete()
-          return { massage: 'Category Deleted successfully' }
-        } else {
-          return response.unprocessableEntity({ error: 'plz Pass Valid id In URL' })
-        }
-      } else {
-        return response.unprocessableEntity({ error: 'plz Pass Valid id In URL' })
-      }
-    } catch (err) {
-      return response.unprocessableEntity({ error: err })
-    }
-  }
-
-  async getProduct({ response, params }: HttpContext) {
-    try {
-      const page = params.page
-      const limit = params.limit
-
-      if (!page || !limit) {
-        return 'Pass Valid Params in URL'
-      }
-
+      const page = request.input('page') || 1
+      const limit = request.input('limit') || 50
       const categoryData = await Category.query().select('*').paginate(page, limit)
       return response
         .status(200)
@@ -131,23 +105,18 @@ export default class CategoriesController {
     }
   }
 
-  async getSignalProduct({ params, response }: HttpContext) {
+  async getSignal({ params, response }: HttpContext) {
     try {
       const id = params.id
+      const getCategory = await Category.find(id)
 
-      if (id) {
-        const getCategory = await Category.find(id)
-
-        if (getCategory) {
-          return response
-            .status(200)
-            .json({ massage: 'Signal Category Fetch successfully', data: getCategory })
-        } else {
-          return response.unprocessableEntity({ error: 'plz Pass Valid id In URL' })
-        }
-      } else {
-        return response.unprocessableEntity({ error: 'plz Pass Id In URL' })
+      if (getCategory) {
+        return response
+          .status(200)
+          .json({ massage: 'Signal Category Fetch successfully', data: getCategory })
       }
+
+      return { massage: ' Data not Found' }
     } catch (err) {
       return response.unprocessableEntity({ error: err })
     }

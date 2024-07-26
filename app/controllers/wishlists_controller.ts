@@ -38,7 +38,7 @@ export default class WishlistsController {
     }
   }
 
-  async getAllwishList({ response, auth }: HttpContext) {
+  async getAllWishList({ response, auth }: HttpContext) {
     try {
       const data = await Wishlist.query()
         .where('user_id', auth.user?.id!)
@@ -49,27 +49,27 @@ export default class WishlistsController {
         return response
           .status(200)
           .json({ massage: 'Fetch Wishlist Successfully', wishlistData: data })
-      } else {
-        return response.unprocessableEntity({ error: 'empty' })
       }
+
+      return response.unprocessableEntity({ error: 'empty' })
     } catch (err) {
       return response.unprocessableEntity({ error: err })
     }
   }
-  async deleteWishlist({ params, response }: HttpContext) {
+  async deleteWishlist({ params, response, auth }: HttpContext) {
     try {
-      if (!params.id) {
-        return response.unprocessableEntity({ error: 'Pass Id in URl' })
-      }
-
-      const data = await Wishlist.query().where('id', params.id).first()
+      const id = params.id
+      const userId = auth.user?.id
+      const data = await Wishlist.query().where('id', id).first()
 
       if (data) {
+        if (data.user_id !== userId)
+          return { massage: 'You do not have permission to modify this wishlist' }
+
         await data.delete()
         return { massage: 'Wishlist Delete Successfully' }
-      } else {
-        return response.unprocessableEntity({ error: 'Data Not Found Please Pass Valid Id' })
       }
+      return response.unprocessableEntity({ error: 'Data Not Found Please Pass Valid Id' })
     } catch (err) {
       return response.unprocessableEntity({ error: err })
     }

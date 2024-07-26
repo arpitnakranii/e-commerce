@@ -3,7 +3,7 @@ import { BaseModel, column, belongsTo, hasMany, manyToMany } from '@adonisjs/luc
 
 import Category from '#models/category'
 import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
-import Orderitem from '#models/orderitem'
+import Orderitem from '#models/order_item'
 import Review from '#models/review'
 import Wishlist from '#models/wishlist'
 import User from './user.js'
@@ -68,5 +68,5 @@ export default class Product extends BaseModel {
   @manyToMany(() => Category, {
     pivotTable: 'product_categories',
   })
-  declare catagorieData: ManyToMany<typeof Category>
+  declare catagoriesData: ManyToMany<typeof Category>
 }

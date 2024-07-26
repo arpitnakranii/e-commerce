@@ -4,7 +4,7 @@ import { compose } from '@adonisjs/core/helpers'
 import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
-import Orderitem from './orderitem.js'
+import Orderitem from './order_item.js'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
 import Wishlist from '#models/wishlist'
 
@@ -27,7 +27,7 @@ export default class User extends compose(BaseModel, AuthFinder) {
   declare password: string
 
   @column.dateTime()
-  declare emailVerified_at: DateTime
+  declare email_verified_at: DateTime
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime

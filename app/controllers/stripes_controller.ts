@@ -24,7 +24,7 @@ export default class StripesController {
         .preload('userData')
         .preload('orderDetails', (orderDetailsQuery) => {
           orderDetailsQuery.preload('products', (categoryQuery) => {
-            categoryQuery.preload('catagorieData')
+            categoryQuery.preload('catagoriesData')
           })
         })
       if (billData.length === 0) {
@@ -69,7 +69,7 @@ export default class StripesController {
         success_url: 'https://www.youtube.com/',
         cancel_url: 'https://www.youtube.com/',
       })
-      return response.status(201).json({ url: paymentSession.url })
+      return { url: paymentSession.url }
     } catch (err) {
       return response.unprocessableEntity({ error: err })
     }

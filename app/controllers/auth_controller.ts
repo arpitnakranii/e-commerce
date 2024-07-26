@@ -30,16 +30,16 @@ export default class AuthController {
       const user = await User.verifyCredentials(data.email, data.password)
       const name = data.email.split('@')
 
-      const tocken = await User.accessTokens.create(user, ['*'], {
+      const token = await User.accessTokens.create(user, ['*'], {
         expiresIn: '1 year',
         name: name[0],
       })
 
-      if (!tocken.value?.release()) {
+      if (!token.value?.release()) {
         return response.unprocessableEntity({ error: 'invalid email or password' })
       }
 
-      return { tocken: tocken.value.release() }
+      return { token: token.value.release() }
     } catch (err) {
       return response.unprocessableEntity({ error: 'Invalid email or password.' })
     }
@@ -68,7 +68,7 @@ export default class AuthController {
           'required': 'The {{ field }} field is required.',
           'email.email': 'The email must be a valid email address.',
           'unique': 'The {{ field }} has already been taken.',
-          'password.minLength': 'The password must be atleast 8 characters.',
+          'password.minLength': 'The password must be at least 8 characters.',
           'password.confirmed': 'The password confirmation does not match.',
         }),
       })
@@ -110,8 +110,8 @@ export default class AuthController {
       return response.unprocessableEntity({ error: 'invalid verification link' })
     }
 
-    if (!user.emailVerified_at) {
-      user.emailVerified_at = DateTime.utc()
+    if (!user.email_verified_at) {
+      user.email_verified_at = DateTime.utc()
       await user.save
     }
     return { success: 'Email verified successfully.' }
@@ -166,34 +166,22 @@ export default class AuthController {
       .validate(request.all(), {
         messagesProvider: new SimpleMessagesProvider({
           'required': 'The {{ field }} field is required.',
-          'password.minLength': 'The password must be atleast 8 characters.',
+          'password.minLength': 'The password must be at least 8 characters.',
           'password.confirmed': 'The password confirmation does not match.',
         }),
       })
+
     user.password = data.password
     user.save()
 
     return { success: 'Password reset successfully.' }
   }
 
-  async getUser({ request }: HttpContext) {
-    const data = request.only(['page', 'limit'])
-
-    const validate = vine.compile(
-      vine.object({
-        page: vine.number().min(1),
-        limit: vine.number().min(1),
-      })
-    )
-
-    const verify = await validate.validate(data)
-
-    if (verify.limit && verify.page) {
-      const userData = await User.query().select('*').orderBy('id').paginate(data.page, data.limit)
-      return {
-        massage: 'User Data Fetch Successfully',
-        data: userData,
-      }
+  async getUser({}: HttpContext) {
+    const userData = await User.query().select('*').orderBy('id').paginate(1, 50)
+    return {
+      massage: 'User Data Fetch Successfully',
+      data: userData,
     }
   }
 }

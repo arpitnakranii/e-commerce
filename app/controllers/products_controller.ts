@@ -6,9 +6,10 @@ import vine from '@vinejs/vine'
 import { DateTime } from 'luxon'
 
 export default class ProductsController {
-  async createProduct({ request, response, auth }: HttpContext) {
+  async create({ request, response, auth }: HttpContext) {
     try {
       const data = request.all()
+      const userId = auth.user?.id
       const featuredImage = request.file('featured_image')
       const imgs = request.files('images')
       data.featuredImage = featuredImage
@@ -44,21 +45,9 @@ export default class ProductsController {
       product.description = data.description
       product.discount_price = data.discount_price
       product.total_quantity = data.total_quantity
-      product.user_id = await auth.user?.id!
-
-      if (!product.user_id) {
-        return { error: 'User Not Found' }
-      }
-
+      product.user_id = userId!
       let categoryIds: number[] = []
-
-      if (Array.isArray(verifyData.category)) {
-        categoryIds = verifyData.category
-      } else if (typeof verifyData.category === 'number') {
-        categoryIds = [verifyData.category]
-      } else {
-        return response.badRequest('Category must be a number or an array of numbers.')
-      }
+      categoryIds = [verifyData.category]
 
       if (verifyData.featuredImage) {
         const featuredFileName = `${cuid()}.${featuredImage?.extname}`
@@ -87,8 +76,8 @@ export default class ProductsController {
       }
 
       await product.save()
-      await product.related('catagorieData').attach(categoryIds)
-      await product.load('catagorieData')
+      await product.related('catagoriesData').attach(categoryIds)
+      await product.load('catagoriesData')
       return {
         massage: 'Product Add Successfully',
         data: product,
@@ -98,34 +87,33 @@ export default class ProductsController {
     }
   }
 
-  async deleteProduct({ params, response }: HttpContext) {
+  async delete({ params, response, auth }: HttpContext) {
     const productId = params.id
-
-    if (!productId) {
-      return { error: 'pass Id In URL' }
-    }
+    const userId = auth.user?.id
 
     const product = await Product.find(productId)
 
     if (product) {
+      if (product.user_id !== userId)
+        return response.forbidden({ massage: 'You do not have permission to modify this product' })
+
       await product.delete()
-      return {
-        massage: 'Product Delete SuccessFully',
-      }
-    } else {
-      return response.unprocessableEntity({ error: 'Enter valid Id in url' })
+      return { massage: 'Product Delete SuccessFully' }
     }
+
+    return response.unprocessableEntity({ error: 'Enter valid Id in url' })
   }
 
-  async updateProduct({ params, request, response }: HttpContext) {
+  async update({ params, request, response, auth }: HttpContext) {
     const productId = params.id
+    const userId = auth.user?.id
 
-    if (productId) {
-      return response.unprocessableEntity({ error: 'pass valid Id in url' })
-    }
     const product = await Product.find(productId)
 
     if (product) {
+      if (product.user_id !== userId)
+        return response.forbidden({ massage: 'You do not have permission to modify this product' })
+
       const data = request.all()
       const featuredImage = request.file('featured_image')
       const imgs = request.files('images')
@@ -197,22 +185,16 @@ export default class ProductsController {
     }
   }
 
-  async getProduct({ response, params }: HttpContext) {
+  async get({ response, request }: HttpContext) {
     try {
-      const page = Number(params.page)
-      const limit = params.limit
-
-      if (!page || !limit) {
-        return 'Pass Valid Params in URL'
-      }
-
+      const page = request.input('page') || 1
+      const limit = request.input('limit') || 50
       const productData = await Product.query()
-        .preload('catagorieData')
+        .preload('catagoriesData')
         .preload('userData')
         .select('*')
         .orderBy('id')
         .paginate(page, limit)
-
       return {
         massage: 'Product Data Fetch Successfully',
         data: productData,
@@ -222,17 +204,14 @@ export default class ProductsController {
     }
   }
 
-  async getSingleProduct({ params, response }: HttpContext) {
+  async getSingle({ params }: HttpContext) {
     const productId = params.id
-
-    if (!productId) {
-      return response.unprocessableEntity({ error: 'Enter valid Id in url' })
-    }
 
     const product = await Product.query()
       .where('id', productId)
-      .preload('catagorieData')
       .preload('userData')
+      .preload('catagoriesData')
+      .first()
 
     if (product) {
       return {
@@ -240,5 +219,6 @@ export default class ProductsController {
         data: product,
       }
     }
+    return { massage: 'Data Not Found' }
   }
 }

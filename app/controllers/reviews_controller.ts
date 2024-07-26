@@ -8,10 +8,6 @@ export default class ReviewsController {
       const productId = params.product_id
       const userId = auth.user?.id
 
-      if (!productId) {
-        response.unprocessableEntity({ error: 'Please Pass Id In URL' })
-      }
-
       const data = request.only(['rating', 'comment'])
       const validate = vine.compile(
         vine.object({
@@ -19,11 +15,7 @@ export default class ReviewsController {
           comment: vine.string(),
         })
       )
-      const verify = await validate.validate(data)
-
-      if (!verify) {
-        return 'validation Error'
-      }
+      await validate.validate(data)
 
       const reviewData = new Review()
       reviewData.user_id = userId!
@@ -49,10 +41,6 @@ export default class ReviewsController {
     try {
       const reviewId = params.review_id
 
-      if (!reviewId) {
-        return response.unprocessableEntity({ error: 'Please Pass Valid Data In URl' })
-      }
-
       const reviewData = await Review.query()
         .where('id', reviewId)
         .preload('products')
@@ -69,25 +57,25 @@ export default class ReviewsController {
       const productId = params.product_id
       const reviewId = params.review_id
 
-      if (!reviewId || !productId) {
-        return { error: 'Pass Valid Data in URL' }
-      }
       const data = request.all()
-
       const reviewData = await Review.query()
-        .where('id', params.review_id)
+        .where('id', reviewId)
         .andWhere('product_id', productId)
-        .andWhere('user_id', userId!)
         .first()
 
       if (reviewData) {
+        if (reviewData.user_id !== userId)
+          return response.forbidden({ massage: 'You do not have permission to modify this review' })
+
         const validate = vine.compile(
           vine.object({
             rating: vine.number().min(1).max(5),
             comment: vine.string(),
           })
         )
+
         const verify = await validate.validate(data)
+
         if (verify) {
           reviewData.rating = data.rating
           reviewData.comment = data.comment
@@ -99,7 +87,7 @@ export default class ReviewsController {
             .preload('products')
             .preload('userData')
 
-          return response.status(200).json({ massage: 'Review Updated', updatedData: updatedData })
+          return { massage: 'Review Updated', updatedData: updatedData }
         }
       }
 
@@ -108,16 +96,19 @@ export default class ReviewsController {
       return response.unprocessableEntity({ error: err })
     }
   }
-  async deleteReview({ response, params }: HttpContext) {
+  async deleteReview({ response, params, auth }: HttpContext) {
     try {
       const reviewId = params.review_id
       const productId = params.product_id
+      const userId = auth.user?.id
 
-      if (!reviewId || !productId) {
-        return response.unprocessableEntity({ error: 'Please Pass Valid Data In URl' })
-      }
+      const reviewData = await Review.query()
+        .where('id', reviewId)
+        .andWhere('product_id', productId)
+        .first()
 
-      await Review.query().where('id', reviewId).andWhere('product_id', productId).delete()
+      if (reviewData?.user_id !== userId)
+        return response.forbidden({ massage: 'You do not have permission to modify this review' })
 
       return { massage: 'Review Delete Successfully' }
     } catch (err) {
